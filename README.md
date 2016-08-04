@@ -6,6 +6,8 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 SQL Server Utilities - Windows PS
 https://github.com/DevNambi/SqlServerUtilities/tree/master/Save-SqlHistory
 
+# Connecting Troubleshooting
+
 JBOSS - Network Packet Recieved - Chimney TCP/IP
 http://www.sqlsolutionsgroup.com/tcp-chimney-offloading/
 https://support.microsoft.com/pt-br/kb/951037
@@ -22,3 +24,6 @@ There is an old Virtual Server document that outlines this pretty well (the scea
 http://itproctology.blogspot.com/2009/07/more-about-chimney-and-tcpoffload-in.html
 http://itproctology.blogspot.com/2008/05/hyper-v-tcpoffloading-poor-network.html
 Brian Ehlert (hopefully you have found this useful) http://ITProctology.blogspot.com"
+
+JDBC: packetsize - 
+https://msdn.microsoft.com/en-us/library/ms378988(v=sql.110).aspx
