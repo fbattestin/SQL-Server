@@ -6,6 +6,9 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 SQL Server Utilities - Windows PS
 https://github.com/DevNambi/SqlServerUtilities/tree/master/Save-SqlHistory
 
+# Buffer Pool
+http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
+
 
 # Troubleshooting SQL Server I/O requests taking longer than 15 seconds – I/O stalls & Disk latency
 
