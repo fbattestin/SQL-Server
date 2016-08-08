@@ -47,3 +47,12 @@ Brian Ehlert (hopefully you have found this useful) http://ITProctology.blogspot
 
 JDBC: packetsize - 
 https://msdn.microsoft.com/en-us/library/ms378988(v=sql.110).aspx
+
+# Missing Files ( Troubleshooting)
+
+--> Artigo: https://support.microsoft.com/en-us/kb/969052
+
+Symptoms: you may encounter the following error messages, and these *may indicate Windows Installer Cache problems*.
+Talvez possa indicar problemas(falta) nos arquivos (*.msi,*.msp) no cache: C:\Windows\Installer\
+
+
