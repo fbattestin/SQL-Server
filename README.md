@@ -58,6 +58,7 @@ you may encounter the following error messages, and these *may indicate Windows 
 TALVEZ possa indicar problemas(falta) dos arquivos *.msi e/ou *.msp no cache: C:\Windows\Installer\
 
 C:\Windows\Installer\ stores important files for applications installed using the Windows Installer technology and should not be deleted. If the installer cache has been compromised, * you may not immediately see problems until you perform an action such as uninstall, repair, or update SQL Server. * 
+IMPORTANTE: Nem todos arquivos informados pelo script fornecido são necessários para realizar a atividade de update de hotfix. Por exemplo, se existirem mais de uma instancia com versoes diferentes (2008R2 e 2012) podem ser gerados arquivos referente a um update da versão em que não esta sendo atualizada.
 
 When you install SQL Server, the Windows Installer stores critical files in the Windows Installer Cache (default is C:\Windows\Installer). These files are required for uninstalling and updating applications. Missing files cannot be copied between computers, because they are unique.
 
@@ -73,7 +74,28 @@ Repair the common shared components and features first, and then repeat the comm
 1#  Repair shared components and features.
 2#  Repair Instances.
 
-Realizar Repair da instancia, utilizando o arquivo original de instalacao. O problema é que para que o REPAIR seja realizado, esses arquivos do CACHE tambem sao necessarios. O que foi observado é que ao executar o REPAIR de uma instancia onde nenhum arquivo indicado como MISSING FILES foram localizados (foi executado o VBS FindSQLInstalls), ao realizar o REPAIR uma referencia de arquivo *.msi foi solicitada, no dialogBox o endereco original do arquivo apontava para um diretorio criptografado, como os diretorios criados pelos Hotfix ao serem executados (realizam o unzip do pacote de atualizacao no diretorio em que sao executados, e geram nomes randomicos com apararencia de criptografia). 
+Realizar Repair da instancia, utilizando o arquivo original de instalacao. O problema é que para que o REPAIR seja realizado, esses arquivos do CACHE tambem sao necessarios. O que foi observado é que ao executar o REPAIR de uma instancia onde nenhum arquivo indicado como MISSING FILES foram localizados (foi executado o VBS FindSQLInstalls), ao realizar o REPAIR uma referencia de arquivo *.msi/*.msp foi solicitada, no dialogBox o endereco original do arquivo apontava para um diretorio com nome em formato aparente de HASH, como os diretorios criados pelos Hotfix ao serem executados (realizam a extracao do pacote de atualizacao no diretorio em que sao executados, e geram nomes randomicos com apararencia de HASH). 
+
+WORKHARD:
+-------------------------------------------------------------------------------------------------------------------
+A execucao de Service Pack 3 sob Windows Server 2008R2, nao foram localizados arquivos pendentes no CACHE de instalação, mas durante a atualizaçao foram solicitados arquivos .msi (rsfx.msi) foi identificado esse arquivo no REGISTRY do Windows, a chave InstallSource continha uma referencia para o diretorio D:\0ca91e857a4f12dd390f0821a3, após alteracao dessa chave inserindo o path original de instalaçao referenciando o pacote rsfx.msi não houve problemas para dar continuidade com a atualizacao.
+
+No caso descrito acima, foi encontrado uma exceção na regra do arquivo FindSQLInstalls.vbs, o retorno da execução não informou a necessidade do arquivo, o que abre precedente para que a validacao pré execuçao de service pack/hotfix também deve levar em consideraçao a acessibilidade dos paths registrados nas chaves de registro do windows ( nome da chave:InstallSource, caminho da chave:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Patches\ )
+
+Para os casos onde os arquivos onde o SOURCE LOCATION informado no relatorio do FindSQLInstalls.vbs não são arquivos com o nome em formato de HASH o procedimento de COPIA e RENAME dos arquivos para o CACHE foram positivos.
+
+RESOLUCAO:
+-------------------------------------------------------------------------------------------------------------------
+Procedure 1: Use a script (FindSQLInstalls.vbs) --link acima.
+
+Note !!!!! -> The FindSQLInstalls.vbs script collects the information to correct invalid package paths.<- !!!!! (Paths Invalidos são armazenados no REGISTRY do Windows? Quais entradas? Quais chaves armazenam essas informacoes?) 
+
+!!!! -> And, this script is used against the source locations to make sure that all MSP packages are in the Windows Installer cache directory. <- !!!!! (O script é usado contra a localização dos pacotes MSP de que forma, onde esses sources locations são armazenados? São feitos testes se os diretórios originais desses arquivos EXISTEM? Caso existam, esses arquivos são copiados? Se os arquivos/diretórios originais, sabendo que esses diretorios são criados ao executarem algum service pack, hotfix e sao extraidos no diretorio local e sao criados com nomes usando algum HASH, existe algum teste de existencia desses diretorios?? 
+
+!!Any missing packages will be re-added if the original source media is available.
+Nesse caso se a media original partir de um diretorio compartilhado, por exemplo, um share de aplicativos para instalação, o usuário que executa esse VBS deve ter acesso ao diretorio de origem.
+Como posso localizar o diretório ORIGEM da instalaçao da Instancia e das Features?
+
 
 CAUSA:
 -------------------------------------------------------------------------------------------------------------------
