@@ -52,7 +52,36 @@ https://msdn.microsoft.com/en-us/library/ms378988(v=sql.110).aspx
 
 --> Artigo: https://support.microsoft.com/en-us/kb/969052
 
-Symptoms: you may encounter the following error messages, and these *may indicate Windows Installer Cache problems*.
-Talvez possa indicar problemas(falta) nos arquivos (*.msi,*.msp) no cache: C:\Windows\Installer\
+SINTOMAS:
+-------------------------------------------------------------------------------------------------------------------
+you may encounter the following error messages, and these *may indicate Windows Installer Cache problems*.
+TALVEZ possa indicar problemas(falta) dos arquivos *.msi e/ou *.msp no cache: C:\Windows\Installer\
 
+C:\Windows\Installer\ stores important files for applications installed using the Windows Installer technology and should not be deleted. If the installer cache has been compromised, * you may not immediately see problems until you perform an action such as uninstall, repair, or update SQL Server. * 
+
+When you install SQL Server, the Windows Installer stores critical files in the Windows Installer Cache (default is C:\Windows\Installer). These files are required for uninstalling and updating applications. Missing files cannot be copied between computers, because they are unique.
+
+
+RECOMENDACAO MICROSOFT:  
+-------------------------------------------------------------------------------------------------------------------
+You should run the repair from the original installation media, using the following command line:
+
+setup.exe /ACTION=REPAIR /INDICATEPROGRESS=TRUE
+
+Repair the common shared components and features first, and then repeat the command to repair the instances installed. During the repair process, the setup dialog box disappears. As long as the progress window does not show an error, the repair process is proceeding as expected.
+
+1#  Repair shared components and features.
+2#  Repair Instances.
+
+Realizar Repair da instancia, utilizando o arquivo original de instalacao. O problema é que para que o REPAIR seja realizado, esses arquivos do CACHE tambem sao necessarios. O que foi observado é que ao executar o REPAIR de uma instancia onde nenhum arquivo indicado como MISSING FILES foram localizados (foi executado o VBS FindSQLInstalls), ao realizar o REPAIR uma referencia de arquivo *.msi foi solicitada, no dialogBox o endereco original do arquivo apontava para um diretorio criptografado, como os diretorios criados pelos Hotfix ao serem executados (realizam o unzip do pacote de atualizacao no diretorio em que sao executados, e geram nomes randomicos com apararencia de criptografia). 
+
+CAUSA:
+-------------------------------------------------------------------------------------------------------------------
+These problems may occur when the Windows Installer database file (.msi) or the Windows Installer patch file (.msp) is missing from the Windows Installer cache. The Windows Installer cache is located in the following folder:
+%windir%\installer
+When a product is installed by using Windows Installer, a stripped version of the original .msi file is stored in the Windows Installer cache. 
+
+!!!!!!!! -> Every update to the product such as a hotfix, a cumulative update, or a service pack setup, also stores the relevant .msp or .msi file in the Windows Installer cache. <- !!!!!!!
+
+Any future update to the product such as a hotfix, a cumulative update, or a service pack setup, !!!! relies !!!! on the information in the files that are stored in the Windows Installer cache. Without this information, the new update cannot perform the required transformations. --> Nesse caso, a referencia para esses arquivos estão escritos no registro do Windows.
 
