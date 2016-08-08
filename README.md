@@ -76,13 +76,77 @@ Repair the common shared components and features first, and then repeat the comm
 
 Realizar Repair da instancia, utilizando o arquivo original de instalacao. O problema é que para que o REPAIR seja realizado, esses arquivos do CACHE tambem sao necessarios. O que foi observado é que ao executar o REPAIR de uma instancia onde nenhum arquivo indicado como MISSING FILES foram localizados (foi executado o VBS FindSQLInstalls), ao realizar o REPAIR uma referencia de arquivo *.msi/*.msp foi solicitada, no dialogBox o endereco original do arquivo apontava para um diretorio com nome em formato aparente de HASH, como os diretorios criados pelos Hotfix ao serem executados (realizam a extracao do pacote de atualizacao no diretorio em que sao executados, e geram nomes randomicos com apararencia de HASH). 
 
-WORKHARD:
+WORKAROUND:
 -------------------------------------------------------------------------------------------------------------------
+Existem dois cenarios de MISSING FILES que sao causado pela ausencia de arquivos de extensões diferentes.
+
+Cenário1: Missing installer files
+Cenário2: Missing patches
+
+Definicao:
+Missing installer files - arquivos *.msi, a origem desse MISSING FILE será um diretório de INSTALACAO e o diretório de origem será C:\Windows\Installer\ e o nome desse arquivo será um código atribuido a esse arquivo original, por exemplo, Origem: ..\sql_engine_core_inst.msi Destino:C:\WINDOWS\Installer\19b4d2.msi 
+
+A chave de registro que armazena essas informacoes de instalacao:
+HKEY_CLASSES_ROOT\Installer\Products\
+
+A saída abaixo refere-se ao FindSQLInstalls.vbs
+================================================================================
+PRODUCT NAME   : Microsoft SQL Server 2008 Database Engine Services
+================================================================================
+  Product Code: {9FFAE13C-6160-4DD0-A67A-DAC5994F81BD}
+  Version     : 10.2.4000.0
+  Most Current Install Date: 20110211
+  Target Install Location: 
+  Registry Path: 
+   HKEY_CLASSES_ROOT\Installer\Products\C31EAFF906160DD46AA7AD5C99F418DB\SourceList
+     Package    : sql_engine_core_inst.msi
+  Install Source: \x64\setup\sql_engine_core_inst_msi\
+  LastUsedSource: m;1;G:\x64\setup\sql_engine_core_inst_msi\
+  
+  !!! Verificar as chaves de registro que são lidas !!!
+  
+Missing patches - arquivos *.msp originados de atualizacoes e nao de instalacoes. O diretorio origem será sempre um diretorio com o nome de HASH.
+Exemplo: Origem:D:\cda162709d239766830bae5ce12b\HotFixSQL\Files\sqlrun_sql.msp , Destino: C:\WINDOWS\Installer\145258.msp
+
+O procedimento abaixo ajuda a localizar o arquivo pendente nas chaves de registro e a como criar essas entradas a partir da identificacao do pacote pendente e da extracao desses arquivos (o procedimento recria o diretorio e nao altera a chave de registro):
+
+To find more details about the missing .msp file in the Windows Installer cache, follow these steps:
+Search for the missing .msp file in the following Windows Installer Patches registry subkey:
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Patches\
+Find the Patch GUID.
+Search for the Patch GUID in the following Windows Installer Products registry subkey:
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\
+For the sample setup log, the information about the missing .msp file and its corresponding patch details are present in the following registry entries:
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Patches\A3B085EA74A9A7640A496636F7EF9A44
+
+Value: 0 
+Name: LocalPackage 
+Data: C:\WINDOWS\Installer\145258.msp 
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\1EB3A031CC585314E87AA527E46EECC2\Patches\A3B085EA74A9A7640A496636F7EF9A44
+Value: 6 
+Name: DisplayName 
+Data: GDR 2050 for SQL Server Database Services 2005 ENU (KB932555)
+
+Now you have all the information points to start the steps to resolve the missing files in the Windows Installer cache.
+------------------------------------------------------------------------------------------------------------------------
 A execucao de Service Pack 3 sob Windows Server 2008R2, nao foram localizados arquivos pendentes no CACHE de instalação, mas durante a atualizaçao foram solicitados arquivos .msi (rsfx.msi) foi identificado esse arquivo no REGISTRY do Windows, a chave InstallSource continha uma referencia para o diretorio D:\0ca91e857a4f12dd390f0821a3, após alteracao dessa chave inserindo o path original de instalaçao referenciando o pacote rsfx.msi não houve problemas para dar continuidade com a atualizacao.
 
 No caso descrito acima, foi encontrado uma exceção na regra do arquivo FindSQLInstalls.vbs, o retorno da execução não informou a necessidade do arquivo, o que abre precedente para que a validacao pré execuçao de service pack/hotfix também deve levar em consideraçao a acessibilidade dos paths registrados nas chaves de registro do windows ( nome da chave:InstallSource, caminho da chave:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Patches\ )
 
 Para os casos onde os arquivos onde o SOURCE LOCATION informado no relatorio do FindSQLInstalls.vbs não são arquivos com o nome em formato de HASH o procedimento de COPIA e RENAME dos arquivos para o CACHE foram positivos.
+
+DEEP DIVE:
+PARA MSP
+
+ENTENDER QUAIS SAO OS GUIDS CORRESPONDENTES A QUAIS VERSOES DE ATUALIZACOES COMO IDENTIFICAR OS SOURCES PATHS E TESTA-LOS CASO EXISTAM.
+
+PARA MSI
+ENTENDER OS REGISTROS QUE CARREGAM OS SOURCES PATHS DA INSTALACAO E SE O USUARIO QUE ESTA EXECUTANDO POSSUI PERMISSAO PARA ACESSA-LOS (E COM QUAL CONTA É ACESSADO, COM A CONTA DE SERVICO OU COM A CONTA DE EXECUCAO)
+
+Para a solucao de Infra:
+Proteger diretório C:\Windows\Installer\ e criar estrutura restrita e organizada de diretorios de instalacao e atualizacao.
 
 RESOLUCAO:
 -------------------------------------------------------------------------------------------------------------------
