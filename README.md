@@ -6,6 +6,10 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 SQL Server Utilities - Windows PS
 https://github.com/DevNambi/SqlServerUtilities/tree/master/Save-SqlHistory
 
+# Microsoft SQL Server BPA ( Best Pretices Analyzer ) 
+https://www.microsoft.com/en-us/download/details.aspx?id=15289&751be11f-ede8-5a0c-058c-2ee190a24fa6=True
+https://www.microsoft.com/en-us/download/details.aspx?id=29302
+
 # Buffer Pool
 http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
 
@@ -75,6 +79,16 @@ Repair the common shared components and features first, and then repeat the comm
 2#  Repair Instances.
 
 Realizar Repair da instancia, utilizando o arquivo original de instalacao. O problema é que para que o REPAIR seja realizado, esses arquivos do CACHE tambem sao necessarios. O que foi observado é que ao executar o REPAIR de uma instancia onde nenhum arquivo indicado como MISSING FILES foram localizados (foi executado o VBS FindSQLInstalls), ao realizar o REPAIR uma referencia de arquivo *.msi/*.msp foi solicitada, no dialogBox o endereco original do arquivo apontava para um diretorio com nome em formato aparente de HASH, como os diretorios criados pelos Hotfix ao serem executados (realizam a extracao do pacote de atualizacao no diretorio em que sao executados, e geram nomes randomicos com apararencia de HASH). 
+
+CAUSA:
+-------------------------------------------------------------------------------------------------------------------
+These problems may occur when the Windows Installer database file (.msi) or the Windows Installer patch file (.msp) is missing from the Windows Installer cache. The Windows Installer cache is located in the following folder:
+%windir%\installer
+When a product is installed by using Windows Installer, a stripped version of the original .msi file is stored in the Windows Installer cache. 
+
+!!!!!!!! -> Every update to the product such as a hotfix, a cumulative update, or a service pack setup, also stores the relevant .msp or .msi file in the Windows Installer cache. <- !!!!!!!
+
+Any future update to the product such as a hotfix, a cumulative update, or a service pack setup, !!!! relies !!!! on the information in the files that are stored in the Windows Installer cache. Without this information, the new update cannot perform the required transformations. --> Nesse caso, a referencia para esses arquivos estão escritos no registro do Windows.
 
 WORKAROUND:
 -------------------------------------------------------------------------------------------------------------------
@@ -161,13 +175,5 @@ Nesse caso se a media original partir de um diretorio compartilhado, por exemplo
 Como posso localizar o diretório ORIGEM da instalaçao da Instancia e das Features?
 
 
-CAUSA:
--------------------------------------------------------------------------------------------------------------------
-These problems may occur when the Windows Installer database file (.msi) or the Windows Installer patch file (.msp) is missing from the Windows Installer cache. The Windows Installer cache is located in the following folder:
-%windir%\installer
-When a product is installed by using Windows Installer, a stripped version of the original .msi file is stored in the Windows Installer cache. 
 
-!!!!!!!! -> Every update to the product such as a hotfix, a cumulative update, or a service pack setup, also stores the relevant .msp or .msi file in the Windows Installer cache. <- !!!!!!!
-
-Any future update to the product such as a hotfix, a cumulative update, or a service pack setup, !!!! relies !!!! on the information in the files that are stored in the Windows Installer cache. Without this information, the new update cannot perform the required transformations. --> Nesse caso, a referencia para esses arquivos estão escritos no registro do Windows.
 
