@@ -2,7 +2,22 @@
 ' This code released under the terms of the 
 ' Microsoft Public License (MS-PL, http://opensource.org/licenses/ms-pl.html.)
 ' https://support.microsoft.com/en-us/kb/969052#bookmark-script
- 
+'Applies to
+'Microsoft SQL Server 2005 Developer Edition, Microsoft SQL Server 2005 Enterprise Edition, Microsoft SQL Server 2005 Enterprise Edition for Itanium-based Systems, Microsoft SQL Server 2005 Enterprise X64 Edition, Microsoft SQL Server 2005 Evaluation Edition, Microsoft SQL Server 2005 Express Edition, , Microsoft SQL Server 2005 Standard Edition, Microsoft SQL Server 2005 Standard X64 Edition, Microsoft SQL Server 2005 Workgroup Edition, Microsoft SQL Server 2005 Standard Edition for Itanium-based Systems, , , , ,
+'
+'To resolve these problems by using a script, follow these steps:
+'Locate the directory to which you saved the script content.
+'Open an elevated command prompt to the directory to which you saved the script, and run the following command:
+'Cscript FindSQLInstalls.vbs %computername%_sql_install_details.txt
+'Open the file from step 2 in a text editor such as Notepad, and identify the problems that are causing the failure. To do this, search the text file for string patterns such as the following:
+'do not
+'!!!
+'Based on the results in step 3, take the steps that are required.
+'
+'Note Look for more information about these steps in the "Examples" section.
+'
+'Repeat steps 2 through 4 until the text file that is created in step 2 no longer contains text that references invalid paths or missing files for the component that is being updated.
+
 On Error Resume Next
  
 Dim arrSubKeys, arrSubKeys2
@@ -335,5 +350,3 @@ Next
 txtFile.Close
 Set txtFile = Nothing
 Set fso = Nothing
-Applies to
-, , , , , , , , , , , , , , , , , , Microsoft SQL Server 2005 Developer Edition, Microsoft SQL Server 2005 Enterprise Edition, Microsoft SQL Server 2005 Enterprise Edition for Itanium-based Systems, Microsoft SQL Server 2005 Enterprise X64 Edition, Microsoft SQL Server 2005 Evaluation Edition, Microsoft SQL Server 2005 Express Edition, , Microsoft SQL Server 2005 Standard Edition, Microsoft SQL Server 2005 Standard X64 Edition, Microsoft SQL Server 2005 Workgroup Edition, Microsoft SQL Server 2005 Standard Edition for Itanium-based Systems, , , , ,
