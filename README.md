@@ -9,6 +9,9 @@ https://github.com/DevNambi/SqlServerUtilities/tree/master/Save-SqlHistory
 # Microsoft SQL Server BPA ( Best Pretices Analyzer ) 
 https://www.microsoft.com/en-us/download/details.aspx?id=15289&751be11f-ede8-5a0c-058c-2ee190a24fa6=True
 https://www.microsoft.com/en-us/download/details.aspx?id=29302
+É necessário o Microsoft Baseline Configuration Analyzer 2.0
+https://www.microsoft.com/en-us/download/details.aspx?id=16475
+
 
 # Buffer Pool
 http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
