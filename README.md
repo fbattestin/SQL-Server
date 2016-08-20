@@ -178,5 +178,9 @@ Nesse caso se a media original partir de um diretorio compartilhado, por exemplo
 Como posso localizar o diretório ORIGEM da instalaçao da Instancia e das Features?
 
 
+# Windows
+
+-> Add Feature AD
+https://social.technet.microsoft.com/wiki/contents/articles/12370.windows-server-2012-set-up-your-first-domain-controller-step-by-step.aspx
 
 
