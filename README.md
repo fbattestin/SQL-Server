@@ -181,6 +181,21 @@ Como posso localizar o diretório ORIGEM da instalaçao da Instancia e das Featu
 # Windows
 
 -> Add Feature AD
+
+-> iSCSI Target 2012 R2
 https://social.technet.microsoft.com/wiki/contents/articles/12370.windows-server-2012-set-up-your-first-domain-controller-step-by-step.aspx
 
+http://www.windowsnetworking.com/articles-tutorials/windows-server-2012/failover-clustering-windows-server-2012-r2-part1.html
+
+https://blogs.technet.microsoft.com/amitd/2014/06/17/configure-windows-2012-r2-as-iscsi-target/
+
+http://www.windowsnetworking.com/articles-tutorials/windows-server-2012/configuring-iscsi-storage-part2.html
+
+-> Win Storage 2008 R2
+https://blogs.technet.microsoft.com/amitd/2014/06/17/configure-windows-2012-r2-as-iscsi-target/
+http://blog.uraniumbackup.us/how-to-iscsi-target-on-win-server-2008-r2/2/
+
+-passo-a-passo
+http://blog.uraniumbackup.us/how-to-iscsi-target-on-win-server-2008-r2/2/
+-Host Target.
 
