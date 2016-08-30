@@ -199,3 +199,5 @@ http://blog.uraniumbackup.us/how-to-iscsi-target-on-win-server-2008-r2/2/
 
 https://blogs.technet.microsoft.com/josebda/2007/12/18/configuring-the-microsoft-iscsi-software-target/
 
+-> Lista de ERROS conhecidos para instalação do Windows Server 2008R2 <-
+https://support.microsoft.com/pt-br/kb/955725
