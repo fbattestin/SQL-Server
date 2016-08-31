@@ -201,3 +201,17 @@ https://blogs.technet.microsoft.com/josebda/2007/12/18/configuring-the-microsoft
 
 -> Lista de ERROS conhecidos para instalação do Windows Server 2008R2 <-
 https://support.microsoft.com/pt-br/kb/955725
+
+--> “RequireKerberos” Error During the SQL 2008 Installation on Windows 2008 Cluster
+https://winadminnotes.wordpress.com/2010/10/28/requirekerberos-error-during-the-sql-2008-installation-on-windows-2008-cluster/
+
+TROUBLESHOOTING:
+ 1 - Baixar SP1 :https://www.microsoft.com/en-us/download/confirmation.aspx?id=20302
+ 2 - Realizar "extract" do SP para um diretorio no server: <cmd> <diretorio> SQLServer2008SP1-KB968369-x64-ENU.exe /x:C:\<diretorio extract>
+ 3 - Executar o Suport Files: C:\SP1\x64\setup\1033\sqlsupport.msi
+ 
+ 4 - Executar via CMD: d:\>Setup.exe /PCUSource=C:\!BIN\SP\SP1\Extract
+ https://winadminnotes.wordpress.com/2010/10/28/requirekerberos-error-during-the-sql-2008-installation-on-windows-2008-cluster/
+ 
+
+ 
