@@ -3,6 +3,9 @@
 White Paper Data Compression - SQL Server 2008r2
 https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 
+Hotfix List
+http://sqlserverbuilds.blogspot.com.br/
+
 # SQL Server 2016 Technical Documentation
 https://technet.microsoft.com/en-us/library/ms130214.aspx
 
