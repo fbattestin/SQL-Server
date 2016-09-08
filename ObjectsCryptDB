@@ -1,0 +1,9 @@
+select o.name,s.definition,o.type_desc,
+case
+when definition is null then 'yes'
+else 'no'
+end as 'is_encrypted'
+from sys.sql_modules s inner join
+sys.objects o on s.object_id = o.object_id
+where type in ('p')
+--and definition is null
