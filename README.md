@@ -5,6 +5,32 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 
 Hotfix List
 http://sqlserverbuilds.blogspot.com.br/
+# WAITSTATS
+WRITELOG Wait
+
+O que significa?
+- Aguardando o transaction log block buffer realizar o flush (desacarregar) os dados para disco.
+
+Evitando respostas precipitadas:
+- Problemas no sub sistema de disco (I/O) - Embora esse seja o problema mais frequente.
+
+Analise:
+- Correlacionar WRITELOG wait time com a latencia do sub sistema de disco.
+	sys.dm_io_virtual_file_stats
+	Olhar para LOGBUFFER waits, analisar a contenção interna para os log buffers.
+- Olhar para a média de escrita em disco e a fila gerada (perfmon)
+- Olhar o tamanho médio das transações.
+- Investigar a frequencia em que são realizados page splits.
+
+
+WRITELOG Wait Solutions
+
+- Movimentar o log para um disco rápido e/ou rever arquitetura de replicação na camada de disco.
+- Incrementar o tamanho das transações para pervinir grandes quantidades de blocos mínimos para flushes no disco
+- Remover indices não clusterizados sem utilização para reduzir a sobrecarga no log na manutenção desse índices sem necessidade
+durante operações de DML.
+- Alterar as chaves dos indices ou alterar o FILLFACTOR para reduzir o page split.
+- Se possível analisar a arquitetura de disco para uma melhor distribuição da carga de dados.
 
 # SQL Server 2016 Technical Documentation
 https://technet.microsoft.com/en-us/library/ms130214.aspx
