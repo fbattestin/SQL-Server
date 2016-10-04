@@ -1,5 +1,8 @@
 # SQL-Server
 
+STATISTICS IO
+https://www.simple-talk.com/sql/performance/simple-query-tuning-with-statistics-io-and-execution-plans/
+
 White Paper Data Compression - SQL Server 2008r2
 https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 
