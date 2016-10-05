@@ -1,0 +1,1 @@
+Select Name as ReportName,CONVERT(XML,CONVERT(VARBINARY(MAX),Content)) AS ReportContent from  Catalog
