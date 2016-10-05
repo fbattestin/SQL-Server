@@ -1,7 +1,10 @@
 # SQL-Server
 
-STATISTICS IO
+SET STATISTICS IO ON
 https://www.simple-talk.com/sql/performance/simple-query-tuning-with-statistics-io-and-execution-plans/
+
+INDEX INTERNALS
+http://www.sqlskills.com/blogs/kimberly/indexes-in-sql-server-20052008-part-2-internals/
 
 White Paper Data Compression - SQL Server 2008r2
 https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
