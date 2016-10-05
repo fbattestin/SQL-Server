@@ -1,0 +1,157 @@
+/*============================================================================
+  File:     Using dm_db_index_physical_stats.sql
+
+  Summary:  This script goes through all of the different types
+			of execution related to index physical statistics.
+			Also, includes tips and tricks if executing outside
+			of the current database.
+
+  Date:     June 2008
+
+  SQL Server Version: 9.00.3054.00 (SP2)
+------------------------------------------------------------------------------
+  Written by Kimberly L. Tripp, SYSolutions, Inc.
+  All rights reserved.
+
+  This script is intended only as a supplement to demos and lectures
+  given by Kimberly L. Tripp.  
+  
+  THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF 
+  ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED 
+  TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+  PARTICULAR PURPOSE.
+============================================================================*/
+
+USE Master
+go
+
+-- All base objects, ALL databases
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), NULL, NULL, NULL, NULL)
+go
+
+-- be sure to FIRST restore the credit database...
+-- The following queries use the Credit database. 
+-- You can download and restore the credit database 
+-- from here:
+-- http://www.sqlskills.com/resources/conferences/CreditBackup80.zip
+
+-- NOTE: This is a SQL Server 2000 backup... 
+
+-- All base objects, only in specified database
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id('Credit'), NULL, NULL, NULL, NULL)
+go
+
+-- All base objects, Only in specified database
+-- NULL and DEFAULT have same meaning within this function.
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id('Credit'), DEFAULT, DEFAULT, DEFAULT, DEFAULT)
+go
+
+-- Specified object, in specified database
+-- NOTE: Must use FULLY qualified names if executing
+-- outside of the database otherwise the object_id returns NULL and then
+-- queries ALL objects within the database rather than just the one
+-- specified. This might catch you by surprise so make sure you're getting
+-- the details of EXACTLY what you think you asked for!!
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id('Credit')
+	, object_id('Credit.dbo.Charge')
+	, NULL
+	, NULL
+	, 'DETAILED')
+go
+
+USE Credit
+go
+
+-- All base objects, in CURRENT database
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), NULL, NULL, NULL, NULL)
+go 
+
+-- this will likely generate a syntax error!!
+-- The database in which you are querying this dmv must be set
+-- to the 90 (SQL Server 2005) compat mode...
+sp_dbcmptlevel credit
+go
+
+sp_dbcmptlevel credit, 90
+go
+
+-- All previous executions use the default MODE of 'Limited'
+-- Specifying limited doesn't change the results...
+
+-- Limited returns the leaf level only 
+-- and only physical fragmentation details. However, this is very
+-- fast as it uses the first level of the non-leaf structure to 
+-- see the fragmentation of the leaf level (very clever!).
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id()
+	, object_id('Charge')
+	, NULL, NULL, 'LIMITED')
+go
+
+-- Sampled returns details about the leaf level only 
+-- but includes logical fragmentation as well as physical.
+-- Useful on larger tables as it does NOT read the entire
+-- table. Good for a detailed (relatively fast) estimate.
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), NULL, NULL, 'SAMPLED')
+go
+
+-- Detailed should be used for a thorough evaluation of ALL
+-- levels of an index, including the b-tree. However, this
+-- may take a considerable amount of time on large tables. 
+-- However, it should not create blocking.
+
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), NULL, NULL, 'DETAILED')
+go
+
+-- To see all of them together for all indexes on the charge table...
+SELECT 'Limited' AS ScanType, * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), NULL, NULL, 'Limited')
+UNION
+SELECT 'Sampled', * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), NULL, NULL, 'Sampled')
+UNION
+SELECT 'Detailed', * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), NULL, NULL, 'DETAILED')
+go
+
+-- To see all of them together for just the clustered index 
+-- on the charge table...
+SELECT 'Limited' AS ScanType, * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), 1, NULL, 'Limited')
+UNION
+SELECT 'Sampled', * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), 1, NULL, 'Sampled')
+UNION
+SELECT 'Detailed', * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('Charge'), 1, NULL, 'DETAILED')
+go
+
+-- What about partitions?
+-- One requirement is that you MUST state the index (parameter 3)
+-- for which you want to see partitions (and which partition is parameter 4).
+SELECT * 
+FROM sys.dm_db_index_physical_stats
+	(db_id(), object_id('[paritioned table]'), 1
+		, [partition number], 'DETAILED')
+go
