@@ -1,0 +1,10 @@
+select	 t.[text]
+		,p.[query_plan]
+		,s.[last_execution_time]
+		,p.[query_plan].value('(//@EstimateRows)[1]', 'varchar(128)') as [estimated_rows]
+		,s.[last_rows]
+from	sys.dm_exec_query_stats as s
+cross apply sys.dm_exec_sql_text(sql_handle) as t
+cross apply sys.dm_exec_query_plan(plan_handle) as p
+where datediff (mi,s.[last_execution_time], getdate()) < 1
+order by t.[text]
