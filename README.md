@@ -11,6 +11,13 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 
 Hotfix List
 http://sqlserverbuilds.blogspot.com.br/
+
+# REPLICATION
+https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replication+Publishing+Model+Overview+sql+server+2005&source=bl&ots=dUwl5ZvxD8&sig=JRX4xGXt9fvoSYNvtJ-7NOLAVcc&hl=pt-BR&sa=X&ved=0ahUKEwijsq7oo_LPAhVIx5AKHbL6Cp8Q6AEIRjAF#v=onepage&q=Replication%20Publishing%20Model%20Overview%20sql%20server%202005&f=false
+
+https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
+
+
 # WAITSTATS
 WRITELOG Wait
 
