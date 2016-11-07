@@ -64,9 +64,11 @@ https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replicat
 	For help, click: http://go.microsoft.com/fwlinkProdName=Microsoft+SQL+Server&ProdVer=10.00.1600&EvtSrc=MSSQLServer&EvtID=21231&LinkId=20476
 	- Starting the Snapshot Agent (Stopped)
 
-	-- Merge Replication;
-		- Alto Overhead (para criação do snapshot e para manutenção)
-		All merge articles must contain a uniqueidentifier column with a unique index and the ROWGUIDCOL property. SQL Server adds a uniqueidentifier column to published tables that do not have one when the first snapshot is generated. 
+	
+--Merge Replication;
+	- Alto Overhead (para criação do snapshot e para manutenção)
+
+- All merge articles must contain a uniqueidentifier column with a unique index and the ROWGUIDCOL property. SQL Server adds a uniqueidentifier column to published tables that do not have one when the first snapshot is generated. 
 
 	Adding a new column will:
 	     » Cause INSERT statements without column lists to fail
@@ -74,6 +76,8 @@ https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replicat
 	     » Increase the time required to generate the first snapshot 
 
 	SQL Server will add a uniqueidentifier column with a unique index and the ROWGUIDCOL property to each of the following tables. 
+	
+	
 	
 https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 
