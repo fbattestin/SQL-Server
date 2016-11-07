@@ -15,6 +15,37 @@ http://sqlserverbuilds.blogspot.com.br/
 # REPLICATION
 https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replication+Publishing+Model+Overview+sql+server+2005&source=bl&ots=dUwl5ZvxD8&sig=JRX4xGXt9fvoSYNvtJ-7NOLAVcc&hl=pt-BR&sa=X&ved=0ahUKEwijsq7oo_LPAhVIx5AKHbL6Cp8Q6AEIRjAF#v=onepage&q=Replication%20Publishing%20Model%20Overview%20sql%20server%202005&f=false
 
+--Transacional Publication:
+	- Somente tabelas que usam primary key;
+	- Não aceita truncate (tabela origem, Publication)
+	- Não gera LOCK (leitura de tlog via agent de replicação);
+	- Ao realizar update na tabela replicada (Subscription) a replicação "quebra";
+	- Baixo overhead;
+	
+--Transacional Publication with updatable subscriptions;
+	- Somente tabelas que usam primary key;
+	- Não aceita truncate (tabela origem, Publication)
+	- Não gera LOCK (leitura de tlog via agent de replicação);
+	- Aceita realizar update na tabela replicada (Subscription);
+	- Alto overhead
+	- cria coluna uniqueidentifier nas tabelas "articles" afim de manter a rastreabilidade dos updates no subscriber:
+	
+	All articles in a publication allowing updatable subscriptions contain a uniqueidentifier column named 'MSrepl_tran_version' used for tracking changes to the replicated data. SQL Server adds such a column to published tables that do not have one. 
+
+	Adding a new column will:
+	     » Cause INSERT statements without column lists to fail.
+	     » Increase the size of the table. 
+
+	SQL Server will add a uniqueidentifier column to each of the following tables when the publication is created
+
+
+
+--Snapshot
+	- Tabelas sem restrição de primary key;
+	- Gera lock;
+	- Overhead de recursos;
+	- Aceita update nos subscription sem oferecer risco para a integridade da replicação.
+
 https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 
 --artigo:
