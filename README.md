@@ -27,7 +27,8 @@ https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replicat
 	- Não aceita truncate (tabela origem, Publication)
 	- Não gera LOCK (leitura de tlog via agent de replicação);
 	- Aceita realizar update na tabela replicada (Subscription);
-	- Alto overhead
+	- Alto overhead (devido a necessidade da criação de uma coluna do tipo uniqueidentifier);
+	- Necessita de criação de linked server com impersonate entre as conta repllinkproxy e outra escolhida pelo usuário( conta dedicada).
 	- cria coluna uniqueidentifier nas tabelas "articles" afim de manter a rastreabilidade dos updates no subscriber:
 	
 	All articles in a publication allowing updatable subscriptions contain a uniqueidentifier column named 'MSrepl_tran_version' used for tracking changes to the replicated data. SQL Server adds such a column to published tables that do not have one. 
@@ -37,15 +38,43 @@ https://books.google.com.br/books?id=zBIngL29O8cC&pg=PA529&lpg=PA529&dq=Replicat
 	     » Increase the size of the table. 
 
 	SQL Server will add a uniqueidentifier column to each of the following tables when the publication is created
-
-
-
+	
 --Snapshot
 	- Tabelas sem restrição de primary key;
 	- Gera lock;
+	- Replica DDL: Index Cluster - OK, Index Noncluster - NOK, Add Column - OK, Drop Column - OK, Alter Column - OK.
 	- Overhead de recursos;
+	- O job de replicação é iniciado a partir do server publication. 
 	- Aceita update nos subscription sem oferecer risco para a integridade da replicação.
+	- não aceita articles com uniqueidentifier (conforme solicitado para replicações Transacionais With Updatables Subscription (ERRO ABAIXO):
+	Creating Publication
+	- Creating Publication 'snap' (Success)
+	SQL Server created publication 'snap'. 
 
+	- Adding article 2 of 2 (Error)
+	Article 'RET_TEST_SIMPLE' was added.  
+	Messages
+	SQL Server Management Studio could not create article 'REP_TEST'. (New Publication Wizard)
+	------------------------------
+	ADDITIONAL INFORMATION:
+	An exception occurred while executing a Transact-SQL statement or batch. (Microsoft.SqlServer.ConnectionInfo)
+	------------------------------
+	Automatic identity range support is useful only for publications that allow updating subscribers.
+	Changed database context to 'ReplicationTest_B'. (Microsoft SQL Server, Error: 21231)
+	For help, click: http://go.microsoft.com/fwlinkProdName=Microsoft+SQL+Server&ProdVer=10.00.1600&EvtSrc=MSSQLServer&EvtID=21231&LinkId=20476
+	- Starting the Snapshot Agent (Stopped)
+
+	-- Merge Replication;
+		- Alto Overhead (para criação do snapshot e para manutenção)
+		All merge articles must contain a uniqueidentifier column with a unique index and the ROWGUIDCOL property. SQL Server adds a uniqueidentifier column to published tables that do not have one when the first snapshot is generated. 
+
+	Adding a new column will:
+	     » Cause INSERT statements without column lists to fail
+	     » Increase the size of the table
+	     » Increase the time required to generate the first snapshot 
+
+	SQL Server will add a uniqueidentifier column with a unique index and the ROWGUIDCOL property to each of the following tables. 
+	
 https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 
 --artigo:
