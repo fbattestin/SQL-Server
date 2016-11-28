@@ -84,6 +84,8 @@ https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 --artigo:
 https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replication-latency-issues-in-sql-server/
 
+# tempdb
+
 # WAITSTATS
 WRITELOG Wait
 
