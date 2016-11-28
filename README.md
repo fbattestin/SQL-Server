@@ -86,7 +86,11 @@ https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replic
 
 # tempdb
 --> CONTENTION
-	Ref.:https://technet.microsoft.com/pt-br/library/ms175195(v=sql.105).aspx
+	Ref.:	https://technet.microsoft.com/pt-br/library/ms175195(v=sql.105).aspx
+		http://www.sqlskills.com/blogs/paul/inside-the-storage-engine-gam-sgam-pfs-and-other-allocation-maps/
+		http://www.sqlskills.com/blogs/paul/the-accidental-dba-day-27-of-30-troubleshooting-tempdb-contention/
+		https://www.youtube.com/watch?v=SvseGMobe2w&feature=share&list=PLF80A8A233EE9F22F
+		
 	Global Allocation Map (GAM)
 	As páginas GAM registram quais extensões foram alocadas. Cada GAM cobre 64.000 extensões ou quase 4 GB de dados. O GAM tem um bit para cada extensão no intervalo que cobre. Se o bit for 1, a extensão será livre; se o bit for 0, a extensão será alocada.
 	Shared Global Allocation Map (SGAM)
@@ -102,6 +106,10 @@ https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replic
 	
 	PROPORCIONAL FILL - UNEVEN FILES
 	O tempdb irá basear o custo ao inserir mais dados no maior arquivo de dados que contem maior número de espaço livre. 
+	
+	RECOMENDAÇÃO PARA ARQUIVOS DE DADOS:
+	The best guidance I’ve seen is from a great friend of mine, Bob Ward, who’s the top Escalation Engineer in Microsoft SQL Product Support. Figure out the number of logical processor cores you have (e.g. two CPUS, with 4 physical cores each, plus hyperthreading enabled = 2 (cpus) x 4 (cores) x 2 (hyperthreading) = 16 logical cores. Then if you have less than 8 logical cores, create the same number of data files as logical cores. If you have more than 8 logical cores, create 8 data files and then add more in chunks of 4 if you still see PFS contention. Make sure all the tempdb data files are the same size too. (This advice is now official Microsoft guidance in KB article 2154845.)
+	
 	
 # WAITSTATS
 WRITELOG Wait
