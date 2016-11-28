@@ -85,7 +85,24 @@ https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replication-latency-issues-in-sql-server/
 
 # tempdb
-
+--> CONTENTION
+	Ref.:https://technet.microsoft.com/pt-br/library/ms175195(v=sql.105).aspx
+	Global Allocation Map (GAM)
+	As páginas GAM registram quais extensões foram alocadas. Cada GAM cobre 64.000 extensões ou quase 4 GB de dados. O GAM tem um bit para cada extensão no intervalo que cobre. Se o bit for 1, a extensão será livre; se o bit for 0, a extensão será alocada.
+	Shared Global Allocation Map (SGAM)
+	As páginas SGAM registram quais extensões estão sendo usadas atualmente como extensões mistas e também têm pelo menos uma página não usada. Cada SGAM cobre 64.000 extensões ou quase 4 GB de dados. O SGAM tem um bit para cada extensão no intervalo que abrange. Se o bit for 1, a extensão será usada como uma extensão mista e terá uma página livre. Se o bit for 0, a extensão não será usada como uma extensão mista, ou será uma extensão mista e todas as suas páginas estarão sendo usadas.
+	
+	Extent = 8 páginas de 8kb
+	"Usualmente" SQL Server utiliza 1 extent para cada um Objeto, marcando o SGAM como SHARED ou MIXED extent
+	
+	Caso o SQL Server necessite criar um objeto no tempdb o algoritimo (RANDON ACCESS) irá procurar um por espaço livre em que possa alocar esses dados, o acesso a essas páginas - paginas que contém informações sobre os status das demais páginas de dados - (1,2,3, por exemplo 2:1:3) é realizado para endereçar a páginas de dados com espaço livre para alocação.
+	A contenção pode acontecer quando há muitos acessos nessas páginas (automaticamente, muitas requisições de uso do tempdb) a procura de espaço para alocação. Sendo assim o número de waits do tipo PAGELATCH_ podem ser altos (importante realizar a o signal - total_wait).
+	Para os LATCHS relacionados a SGAM/GAM o troubleshooting comum é a criação de novos datafiles.
+	Pata os LATCHS relacionados a PFS habilitar o trace flag T1118
+	
+	PROPORCIONAL FILL - UNEVEN FILES
+	O tempdb irá basear o custo ao inserir mais dados no maior arquivo de dados que contem maior número de espaço livre. 
+	
 # WAITSTATS
 WRITELOG Wait
 
