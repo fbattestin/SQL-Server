@@ -110,7 +110,89 @@ https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replic
 	RECOMENDAÇÃO PARA ARQUIVOS DE DADOS:
 	The best guidance I’ve seen is from a great friend of mine, Bob Ward, who’s the top Escalation Engineer in Microsoft SQL Product Support. Figure out the number of logical processor cores you have (e.g. two CPUS, with 4 physical cores each, plus hyperthreading enabled = 2 (cpus) x 4 (cores) x 2 (hyperthreading) = 16 logical cores. Then if you have less than 8 logical cores, create the same number of data files as logical cores. If you have more than 8 logical cores, create 8 data files and then add more in chunks of 4 if you still see PFS contention. Make sure all the tempdb data files are the same size too. (This advice is now official Microsoft guidance in KB article 2154845.)
 	
+	TLOG DIFFERENCE:
 	
+	
+	
+# RECOVERY MODEL (PERFORMANCE)
+Baseline Script
+	
+		create table x (col1 int,col2 char(5000) not null)
+		go
+		begin tran
+
+		declare @x int
+		set @x = 0
+		while (@x < 100000)
+		begin
+		insert into x values (1,'1')
+		set @x = @x + 1
+		end
+		go
+		--rollback
+		drop table x
+
+LAB:
+	DB - Um Arquivo de Log 100MB, e Um arquivo de dados 100MB
+	Tempo Recovery Model SIMPLE: 00:00:35
+	Contador Perfmon: Log Bytes Flused/sec
+	Comportamento: 100% durante a operação
+	Durante ROLLBACK: ~35% a 40% (sem picos) - 00:01:10
+
+	Database Name                  Log Size (MB) Log Space Used (%) Status
+	------------------------------ ------------- ------------------ -----------
+	master                         2.242188      46.34146           0
+	tempdb                         0.7421875     53.68421           0
+	model                          1.242188      35.22013           0
+	msdb                           5.054688      19.24266           0
+	AdventureWorks2012             0.9921875     37.79528           0
+	DB_SERVER                      724.7422      99.14679           0
+
+	CHECKPOINT 00:00:06
+		
+	Database Name               Log Size (MB) Log Space Used (%) Status
+	--------------------------- ------------- ------------------ -----------
+	master                      2.242188      46.34146           0
+	tempdb                      0.7421875     53.68421           0
+	model                       1.242188      35.22013           0
+	msdb                        5.054688      19.24266           0
+	AdventureWorks2012          0.9921875     37.79528           0
+	DB_SERVER                   724.7422      0.4861643          0
+	sqlnexus                    1.039063      52.25564           0
+
+	DB - Um Arquivo de Log 100MB, e Um arquivo de dados. 100MB
+	Tempo Recovery Model FULL: 00:00:32
+	Contador Perfmon: Log Bytes Flused/sec
+	Comportamento: 100% durante a operação
+	Durante ROLLBACK: ~35% a 40% (com picos) - 00:01:11
+
+
+	DB - Um Arquivo de Log 100MB, e Um arquivo de dados. 100MB
+	Tempo Recovery Model BULK LOGGED: 00:00:30
+	Contador Perfmon: Log Bytes Flused/sec
+	Comportamento: 100% durante a operação
+	Durante ROLLBACK: ~35% a 40% (com picos) - 00:01:12
+
+	Database Name                 Log Size (MB) Log Space Used (%) Status
+	----------------------------- ------------- ------------------ -----------
+	master                        2.242188      59.58188           0
+	tempdb                        0.7421875     58.42105           0
+	model                         1.242188      33.33333           0
+	msdb                          5.054688      17.85162           0
+	AdventureWorks2012            0.9921875     58.66142           0
+	DB_SERVER                     724.7422      99.78441           0
+
+
+	CHECKPOINT:00:00:14
+	Database Name                  Log Size (MB) Log Space Used (%) Status
+	------------------------------ ------------- ------------------ -----------
+	master                         2.242188      59.58188           0
+	tempdb                         0.7421875     58.42105           0
+	model                          1.242188      33.33333           0
+	msdb                           5.054688      17.85162           0
+	AdventureWorks2012             0.9921875     58.66142           0
+	DB_SERVER                      724.7422      0.4780795          0
+
 # WAITSTATS
 WRITELOG Wait
 
