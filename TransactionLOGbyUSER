@@ -1,0 +1,14 @@
+
+--Finding a transaction in the log for a particular user
+--Paul Randal
+--http://www.sqlskills.com/blogs/paul/finding-a-transaction-in-the-log-for-a-particular-user/
+SELECT
+    [Current LSN],
+    [Operation],
+    [Transaction ID],
+    [Begin Time],
+    LEFT ([Description], 40) AS [Description]
+FROM
+    fn_dblog (NULL, NULL)
+WHERE
+    [Transaction SID] = SUSER_SID ('corporate\aufsantos');
