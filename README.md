@@ -85,12 +85,13 @@ https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replication-latency-issues-in-sql-server/
 
 # tempdb
+http://social.technet.microsoft.com/wiki/contents/articles/31353.sql-server-demystifying-tempdb-and-recommendations.aspx
+
 https://blogs.msdn.microsoft.com/sqlserverstorageengine/2009/01/11/tempdb-monitoring-and-troubleshooting-allocation-bottleneck/
 
 https://support.microsoft.com/pt-br/kb/2154845
 
 https://www.youtube.com/watch?v=SvseGMobe2w&feature=share&list=PLF80A8A233EE9F22F
-
 
 --> CONTENTION
 	Ref.:	https://technet.microsoft.com/pt-br/library/ms175195(v=sql.105).aspx
