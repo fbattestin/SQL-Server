@@ -1,3 +1,5 @@
+http://lti.cs.vt.edu/NewKA/OpenDSA/Books/CS2114/html/IntroDSA.html
+
 # SQL-Server
 
 SET STATISTICS IO ON
