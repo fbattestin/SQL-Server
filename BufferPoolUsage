@@ -1,0 +1,19 @@
+
+--[PctFreeSize] muito alto, pode ser indicador de Indice fragmentado.
+WITH AggregateBufferPoolUsage AS 
+	(	
+		SELECT		 DB_NAME(database_id)				AS [Database]
+					,COUNT(*) * 8/1024.0				AS [CachedSizeMB] 
+					,sum(free_space_in_bytes)/1000000.	AS [CachedFreeSizeMB]
+					,sum(row_count)						AS [TotalCachedRows]
+		FROM		sys.dm_os_buffer_descriptors WITH (NOLOCK)
+		group by
+					DB_NAME(database_id)
+	)SELECT	  [Database]
+			, [TotalCachedRows]
+			, [CachedSizeMB]
+			, [CachedFreeSizeMB]
+			, REPLACE(SUBSTRING(CONVERT(VARCHAR(MAX),([CachedFreeSizeMB]/[CachedSizeMB]) *100),0,3) + '%','.','') [PctFreeSize]
+	FROM	AggregateBufferPoolUsage
+	ORDER BY
+			([CachedFreeSizeMB]/[CachedSizeMB]) *100 DESC
