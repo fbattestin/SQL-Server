@@ -1,0 +1,17 @@
+--Tracking Page Split a partir do 2005
+use DB
+go
+
+select
+		 AllocUnitName as [Index]
+		,(Case context 
+				when 'LCX_INDEX_LEAF' then 'NonClustered'
+				when 'LCX_CLUSTERED'  then 'Clustered'
+				else 'Non-Leaf'
+		  end) as SplitType
+		,count(1) as SplitCount
+from	fn_dblog (null,null)
+where	operation = 'LOP_DELETE_SPLIT'
+group by
+		AllocUnitName,context
+go
