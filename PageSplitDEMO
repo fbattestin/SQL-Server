@@ -1,0 +1,177 @@
+use master
+go
+
+if DATABASEPROPERTYEX('PageSplit','Version') > 0
+begin
+	alter database PageSplit set single_user with rollback immediate;
+	drop database PageSplit;
+end
+go
+
+create database PageSplit
+go
+
+use PageSplit
+go
+ 
+create table PageSplit 
+(
+	 intcol		int
+	,intcol2	int
+	,charcol	char(20)
+	,varcharCol	varchar(8000)
+);
+go
+
+--cada linha possui valores de 4000-byte tipo char 
+insert into PageSplit values (1,1,'a',REPLICATE('Row1',1000));
+go
+
+insert into PageSplit values (3,3,'b',REPLICATE('Row3',1000));
+go
+
+insert into PageSplit values (5,5,'c',REPLICATE('Row5',1000));
+go
+
+insert into PageSplit values (7,7,'d',REPLICATE('Row7',1000));
+go
+
+insert into PageSplit values (9,9,'f',REPLICATE('Row9',1000));
+go
+
+insert into PageSplit values (11,11,'g',REPLICATE('Row11',800));
+go
+
+insert into PageSplit values (13,13,'h',REPLICATE('Row13',800));
+go
+
+insert into PageSplit values (15,15,'i',REPLICATE('Row15',800));
+go
+
+--indice cluster
+create clustered index [idx_PageSplit] on [PageSplit] (intcol);
+go
+--Reset
+
+--trace flag (para utilizar o dbcc page)
+DBCC TRACEON (3604);
+GO
+
+--(HoBtRoot)
+dbcc semetadata ('PageSplit');
+go
+
+--navegar root page (HoBtRoot)
+dbcc page ('PageSplit'/*Nome do Banco*/,1,119,3);
+go
+
+--pagina vizinha (ou seja 1+ do root page)
+dbcc page (N'PageSplit'/*Nome do Banco*/,1,120,3);
+go
+/* Header Exemplo
+
+m_pageId = (1:120)                  m_headerVersion = 1                 m_type = 1
+m_typeFlagBits = 0x0                m_level = 0                         m_flagBits = 0x0
+m_objId (AllocUnitId.idObj) = 121   m_indexId (AllocUnitId.idInd) = 256 
+Metadata: AllocUnitId = 72057594045857792                                
+Metadata: PartitionId = 72057594040614912                                Metadata: IndexId = 1
+Metadata: ObjectId = 245575913      m_prevPage = (1:118)                m_nextPage = (1:121) <---------------Pagina Vizinha 
+pminlen = 32                        m_slotCnt = 2   <-- 2 Linhas na Pagina                    m_freeCnt = 10 <----------- 10 bytes free
+m_freeData = 8178                   m_reservedCnt = 0                   m_lsn = (38:272:43)
+m_xactReserved = 0                  m_xdesId = (0:0)                    m_ghostRecCnt = 0
+m_tornBits = 0                      DB Frag ID = 1                      
+
+*/
+
+--Case 1 - Fragmentacao Logica
+-- Insert Aleatorio
+insert into PageSplit values (10,10,'j',REPLICATE('Row10',800));
+go
+-- Irá inserir uma linha entre as paginas que inseriram os valores 9 e 11
+
+--agora olhando para a mesma página (1+ da root page) 
+dbcc page (N'PageSplit'/*Nome do Banco*/,1,120,3);
+go
+
+--como houve o split das páginas que possuiam os valores 9 e 11, o metadado do header 
+--deve apontar para uma nova página;
+
+/* Metadado
+PAGE HEADER:
+
+
+Page @0x0000000456680000
+
+m_pageId = (1:120)                  m_headerVersion = 1                 m_type = 1
+m_typeFlagBits = 0x0                m_level = 0                         m_flagBits = 0x8000
+m_objId (AllocUnitId.idObj) = 121   m_indexId (AllocUnitId.idInd) = 256 
+Metadata: AllocUnitId = 72057594045857792                                
+Metadata: PartitionId = 72057594040614912                                Metadata: IndexId = 1
+Metadata: ObjectId = 245575913      m_prevPage = (1:118)<-- pagina anterior                m_nextPage = (1:126) <-- Antes esse valor apontava para a pagina 121!
+pminlen = 32                        m_slotCnt = 2                       m_freeCnt = 10
+m_freeData = 8178                   m_reservedCnt = 0                   m_lsn = (38:360:37)
+m_xactReserved = 0                  m_xdesId = (0:0)                    m_ghostRecCnt = 0
+m_tornBits = 0                      DB Frag ID = 1                      
+*/
+
+----RESET DATABASE
+
+--Fragmentacao por update de colunas com tamanhos variaveis
+--de 4000 bytes para 8000 bytes
+use PageSplit
+go
+
+update PageSplit set varcharCol= replicate('Row9Long', 1000)
+where intcol = 9;
+go
+
+--(HoBtRoot)
+dbcc semetadata ('PageSplit');
+go
+
+--navegar root page (HoBtRoot)
+dbcc page ('PageSplit'/*Nome do Banco*/,1,119,3);
+go
+
+--pagina vizinha (ou seja 1+ do root page)
+dbcc page (N'PageSplit'/*Nome do Banco*/,1,120,3);
+go
+/*
+PAGE HEADER:
+
+
+Page @0x00000004564B4000
+
+m_pageId = (1:120)                  m_headerVersion = 1                 m_type = 1
+m_typeFlagBits = 0x0                m_level = 0                         m_flagBits = 0x0
+m_objId (AllocUnitId.idObj) = 121   m_indexId (AllocUnitId.idInd) = 256 
+Metadata: AllocUnitId = 72057594045857792                                
+Metadata: PartitionId = 72057594040614912                                Metadata: IndexId = 1
+Metadata: ObjectId = 245575913      m_prevPage = (1:118)                m_nextPage = (1:126) <--Pagina Seguinte
+pminlen = 32                        m_slotCnt = 1                       m_freeCnt = 53 <-------- bytes free
+m_freeData = 8137                   m_reservedCnt = 0                   m_lsn = (38:360:39)
+m_xactReserved = 0                  m_xdesId = (0:0)                    m_ghostRecCnt = 0
+m_tornBits = 0                      DB Frag ID = 1                      
+
+*/
+
+--dump para a proxima pagina
+dbcc page (N'PageSplit'/*Nome do Banco*/,1,126,3);
+go
+
+/*
+PAGE HEADER:
+
+Page @0x00000004564BE000
+
+m_pageId = (1:126)                  m_headerVersion = 1                 m_type = 1
+m_typeFlagBits = 0x0                m_level = 0                         m_flagBits = 0x0
+m_objId (AllocUnitId.idObj) = 121   m_indexId (AllocUnitId.idInd) = 256 
+Metadata: AllocUnitId = 72057594045857792                                
+Metadata: PartitionId = 72057594040614912                                Metadata: IndexId = 1
+Metadata: ObjectId = 245575913      m_prevPage = (1:120)                m_nextPage = (1:121)
+pminlen = 32                        m_slotCnt = 1                       m_freeCnt = 4053 <-- representa a 50% da pagina livre
+m_freeData = 4137                   m_reservedCnt = 0                   m_lsn = (38:360:34)
+m_xactReserved = 0                  m_xdesId = (0:0)                    m_ghostRecCnt = 0
+m_tornBits = 0                      DB Frag ID = 1                      
+*/
