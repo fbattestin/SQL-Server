@@ -1,0 +1,187 @@
+use master
+go
+
+--PageSplit Demo Extra Logging 
+if DATABASEPROPERTYEX('PageSplit','Version') > 0
+begin
+	alter database PageSplit set single_user with rollback immediate;
+	drop database PageSplit;
+end
+go
+
+create database PageSplit
+go
+
+use PageSplit
+go
+ 
+create table PageSplit 
+(
+	 c1		int
+	,c2		char(1000)
+);
+go
+
+--indice cluster
+create clustered index [idx_PageSplit] on [PageSplit] (c1);
+go
+
+--inserindo linhas deixando um gap c1 = 5
+insert into PageSplit values (1,'a');
+go
+insert into PageSplit values (2,'a');
+go
+insert into PageSplit values (3,'a');
+go
+insert into PageSplit values (4,'a');
+go
+insert into PageSplit values (6,'a');
+go
+insert into PageSplit values (7,'a');
+go
+
+
+--inserindo um valor sequencial (col1 = 8) 
+--nesse caso nao ira ocorrer pagesplit
+--apos essa inserção verifico o numero de bytes utilizados no transaction log
+begin tran
+insert into PageSplit values (8,'a');
+go
+
+select	database_transaction_log_bytes_used
+from	sys.dm_tran_database_transactions
+where	database_id = db_id('PageSplit');
+go
+
+commit
+go
+
+--esse número pode variar entre versões de sql server
+--database_transaction_log_bytes_used
+--1256
+
+--agora inserindo o missing key (col1 = 5 ) 
+--CAUSANDO O PAGESPLIT
+begin tran
+insert into PageSplit values (5,'a');
+go
+
+select	database_transaction_log_bytes_used
+from	sys.dm_tran_database_transactions
+where	database_id = db_id('PageSplit');
+go
+
+commit
+go
+-- 5X MAIS TRANSACTIONS BYTES
+--database_transaction_log_bytes_used
+--7572
+
+
+--------------------------------
+--NOVO CENÁRIO LINHA 100BYTES
+drop table PageSplit
+go
+---------------------------------
+
+create table PageSplit 
+(
+	 c1		int
+	,c2		char(100)
+);
+go
+
+--indice cluster
+create clustered index [idx_PageSplit] on [PageSplit] (c1);
+go
+
+--inserindo 66 linhas 
+insert into PageSplit values (1,'a');
+insert into PageSplit values (2,'a');
+go
+insert into PageSplit values (4,'a');
+go 64
+
+
+
+--inserindo um valor sequencial (col1 = 5) 
+--nesse caso nao ira ocorrer pagesplit
+--apos essa inserção verifico o numero de bytes utilizados no transaction log
+begin tran
+insert into PageSplit values (5,'a');
+go
+
+select	database_transaction_log_bytes_used
+from	sys.dm_tran_database_transactions
+where	database_id = db_id('PageSplit');
+go
+
+commit
+go
+
+--bytes utilizados na transação
+--database_transaction_log_bytes_used
+--356
+
+
+--agora inserindo o missing key (col1 = 5 ) 
+--CAUSANDO O PAGESPLIT
+begin tran
+insert into PageSplit values (3,'a');
+go
+
+select	database_transaction_log_bytes_used
+from	sys.dm_tran_database_transactions
+where	database_id = db_id('PageSplit');
+go
+
+commit
+go
+
+--numero de bytes utilizados na transação
+--database_transaction_log_bytes_used
+--6024
+
+
+------------------
+--novo cenario (small tables)
+------------------
+drop table PageSplit
+go
+-------------------
+
+create table PageSplit 
+(
+	 c1		int
+	,c2		char(10)
+);
+go
+
+--indice cluster
+create clustered index [idx_PageSplit] on [PageSplit] (c1);
+go
+
+--inserindo 260 linhas 
+insert into PageSplit values (1,'a');
+go 6
+insert into PageSplit values (3,'a');
+go 254	
+
+--inserindo um valor sequencial (col1 = 4) 
+--nesse caso nao ira ocorrer pagesplit
+--apos essa inserção verifico o numero de bytes utilizados no transaction log
+begin tran
+insert into PageSplit values (2,'a');
+go
+
+select	database_transaction_log_bytes_used
+from	sys.dm_tran_database_transactions
+where	database_id = db_id('PageSplit');
+go
+
+commit
+go
+
+--bytes utilizados na transação
+--database_transaction_log_bytes_used
+--41016
