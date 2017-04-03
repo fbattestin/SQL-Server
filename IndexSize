@@ -1,0 +1,24 @@
+-- Original Author: Pinal Dave 
+SELECT ix.[name] AS IndexName
+,(SUM(ps.[used_page_count]) * 8)/1024 AS IndexSize_MB
+FROM sys.dm_db_partition_stats AS ps
+JOIN sys.indexes AS ix
+ON ps.[object_id] = ix.[object_id]
+AND ps.[index_id] = ix.[index_id]
+where ix.[name] in ('IE20_TAXAS'
+,'IE19_TAXAS'
+,'IE18_TAXAS'
+,'IE20_CESTA'
+,'IE05_TTDCALE_AGDA_OPRC_TITU'
+,'IE02_TTDCALE_AGDA_OPRC_TITU'
+,'IE19_SALDO'
+,'IE16_TAXAS'
+,'IE19_CESTA'
+,'IE03_TTDCALE_AGDA_OPRC_TITU'
+,'IE01_BOLETO'
+,'IE04_TTDCALE_AGDA_OPRC_TITU'
+,'IE18_CESTA'
+,'IX02_TITULO_MERCADO'
+,'IE01_TTDAGDA')
+
+GROUP BY ix.[name]
