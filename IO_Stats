@@ -1,0 +1,14 @@
+--Verifica volume de IO por instancia.
+
+;WITH Aggregate_IO_Statistics
+AS
+(SELECT DB_NAME(database_id) AS [Database Name],
+CAST(SUM(num_of_bytes_read + num_of_bytes_written)/1048576 AS DECIMAL(12, 2)) AS io_in_mb
+FROM sys.dm_io_virtual_file_stats(NULL, NULL) AS [DM_IO_STATS]
+GROUP BY database_id)
+SELECT	 SERVERPROPERTY('ServerName') AS [ServerName]
+		,SUM(io_in_mb) AS [Total I/O (MB)]
+		,(SELECT DATEDIFF(DD,CRDATE,GETDATE()) FROM SYSDATABASES WHERE NAME = 'TEMPDB') as [DaysBoot]
+		,SUM(io_in_mb)/(SELECT DATEDIFF(DD,CRDATE,GETDATE()) FROM SYSDATABASES WHERE NAME = 'TEMPDB') as [IO_perDay(MB)]
+		,SUM(io_in_mb)/(SELECT DATEDIFF(DD,CRDATE,GETDATE())*24 FROM SYSDATABASES WHERE NAME = 'TEMPDB')  as [IO_perHour(MB)]
+FROM Aggregate_IO_Statistics
