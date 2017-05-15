@@ -14,6 +14,30 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 Hotfix List
 http://sqlserverbuilds.blogspot.com.br/
 
+# Filegroups
+
+Moving an existing Index to another filegroup
+https://docs.microsoft.com/en-us/sql/relational-databases/indexes/move-an-existing-index-to-a-different-filegroup
+
+As you develop your index design strategy, you should consider the placement of the indexes on the filegroups associated with the database. Careful selection of the filegroup or partition scheme can improve query performance.
+
+By creating the nonclustered index on a different filegroup, you can achieve performance gains if the filegroups are using different physical drives with their own controllers. Data and index information can then be read in parallel by the multiple disk heads. For example, if Table_A on filegroup f1 and Index_A on filegroup f2 are both being used by the same query, performance gains can be achieved because both filegroups are being fully used without contention. However, if Table_A is scanned by the query but Index_A is not referenced, only filegroup f1 is used. This creates no performance gain.
+Because you cannot predict what type of access will occur and when it will occur, it could be a better decision to spread your tables and indexes across all filegroups. This would guarantee that all disks are being accessed because all data and indexes are spread evenly across all disks, regardless of which way the data is accessed. This is also a simpler approach for system administrators.
+
+https://technet.microsoft.com/en-us/library/ms190433(v=sql.105).aspx
+
+http://blogs.lessthandot.com/index.php/datamgmt/dbadmin/sql-server-filegroups-the-what/
+
+Just to be clear, based on comments, this is because of parallelism at the I/O subsystem level (not one thread per data file, as that’s a myth, but being able to write to multiple points on the array during checkpoints)
+
+As your databases get larger, it becomes more likely that you’re going to need multiple files and filegroups
+Multiple filegroups give you enhanced possibilities for targeted disaster recovery, easier manageability, and I/O subsystem placement
+Each filegroup should have 2-4 files at least, with tempdb being a special case
+
+https://www.sqlskills.com/blogs/paul/files-and-filegroups-survey-results/
+
+
+
 # Fragmentation
 
 sys.dm_db_index_physical_stats
@@ -97,6 +121,9 @@ https://msdn.microsoft.com/en-us/library/ms152567(v=sql.105).aspx
 https://www.mssqltips.com/sqlservertip/3598/troubleshooting-transactional-replication-latency-issues-in-sql-server/
 
 # tempdb
+
+https://www.sqlskills.com/blogs/paul/tempdb-configuration-survey-results-and-advice/
+
 http://social.technet.microsoft.com/wiki/contents/articles/31353.sql-server-demystifying-tempdb-and-recommendations.aspx
 
 https://blogs.msdn.microsoft.com/sqlserverstorageengine/2009/01/11/tempdb-monitoring-and-troubleshooting-allocation-bottleneck/
