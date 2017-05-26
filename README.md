@@ -14,6 +14,18 @@ https://technet.microsoft.com/en-us/library/dd894051(v=sql.100).aspx
 Hotfix List
 http://sqlserverbuilds.blogspot.com.br/
 
+# PAGELATCH_XX
+https://sqlperformance.com/2015/10/sql-performance/knee-jerk-wait-statistics-pagelatch
+
+https://support.microsoft.com/en-us/help/4013999/fix-significantly-increased-pagelatch-ex-contentions-in-sys-sysobjvalu
+
+https://technet.microsoft.com/en-us/library/ms190969(v=sql.105).aspx
+
+--PDF
+https://www.google.com.br/url?sa=t&rct=j&q=&esrc=s&source=web&cd=5&ved=0ahUKEwjKgpnPg4rUAhUDx5AKHekVCYsQFghGMAQ&url=http%3A%2F%2Fdownload.microsoft.com%2Fdownload%2Fb%2F9%2Fe%2Fb9edf2cd-1dbf-4954-b81e-82522880a2dc%2Fsqlserverlatchcontention.pdf&usg=AFQjCNFsTLQUKg-Nqi1JQ2aitXs5kXsuwA
+
+
+
 # Filegroups
 
 Moving an existing Index to another filegroup
