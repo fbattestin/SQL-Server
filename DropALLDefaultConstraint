@@ -1,0 +1,7 @@
+
+SELECT                  --dc.*,
+						distinct 'ALTER TABLE ' + object_name(dc.parent_object_id) + ' DROP CONSTRAINT ' + dc.name + ';' + char(10) + 'go'
+        FROM            sys.default_constraints AS dc
+            LEFT JOIN   sys.columns AS sc
+                ON      (dc.parent_column_id = sc.column_id)
+        where  dc.parent_object_id in (select object_id from sys.objects where name in (''))
