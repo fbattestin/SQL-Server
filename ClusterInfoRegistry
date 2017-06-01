@@ -1,0 +1,78 @@
+select 'GuardAppEvent:Start','GuardAppEventType:METADADO','GuardAppEventStrValue:Executar Scripts de Consultas'
+go
+
+set nocount on
+
+declare	 @Node1			VARCHAR(100)
+		,@Node2			VARCHAR(100)
+		,@ActualNode	VARCHAR(100)
+		,@str1			VARCHAR(100)
+		,@str2			VARCHAR(100)
+
+		,@str3			VARCHAR(100)
+		,@str4			VARCHAR(100)
+		
+		,@clname1		VARCHAR(100)
+		,@clname2		VARCHAR(100)
+
+		,@int1			INT
+		,@int2			INT
+				
+select	@ActualNode = convert(varchar(100),SERVERPROPERTY('ComputerNamePhysicalNetBios'));
+
+set @int1 = 1
+set @int2 = 2
+
+while	@Node1 is null
+begin
+	set @str1 = N'CLUSTER\NODES\' + CONVERT(varchar(1),@int1)
+  
+   if @int1 > 3
+	begin 
+		set @Node1 = ''
+	end
+   
+		exec   	master.dbo.xp_regread
+       			@rootkey      = N'HKEY_LOCAL_MACHINE',
+       			@key          = @str1,
+       			@value_name   = N'NodeName', 
+       			@value        = @Node1 output
+       	
+       	set @int1 = @int1 + 2 
+       	
+end      
+
+while	@Node2 is null
+begin
+	set @str2 = N'CLUSTER\NODES\' + CONVERT(varchar(1),@int2)
+   
+   if @int2 > 4
+	begin 
+		set @Node2 = ''
+	end
+		exec   	master.dbo.xp_regread
+       			@rootkey      = N'HKEY_LOCAL_MACHINE',
+       			@key          = @str2,
+       			@value_name   = N'NodeName', 
+       			@value        = @Node2 output              
+       	set @int2 = @int2 + 2 
+       	
+end      
+
+	set @str3 = N'CLUSTER\'
+
+	exec   	master.dbo.xp_regread
+       		@rootkey      = N'HKEY_LOCAL_MACHINE',
+       		@key          = @str3,
+       		@value_name   = N'ClusterName', 
+       		@value        = @clname1 output       
+
+
+select	  ServerName   	= 	@@SERVERNAME  
+		 ,Cluster_Name	=	@clname1
+		 ,Node1_Name   	= 	@Node1
+		 ,Node2_Name   	= 	@Node2
+		 ,Acutal_Node	=	@ActualNode
+
+select 'GuardAppEvent:Released'
+go
