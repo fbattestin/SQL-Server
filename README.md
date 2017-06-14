@@ -295,6 +295,18 @@ https://www.microsoft.com/en-us/download/details.aspx?id=16475
 # Buffer Pool
 http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
 
+# I/O
+https://blog.docbert.org/queue-depth-iops-and-latency/
+The end result of this is that the more paths a LUN has, the less important the HBA queue depth is. Most HBA's have a default queue depth of around 32, which if our storage can maintain a response time of 1ms (measured at the application) then we know that this is enough to generate up to around (32x1/0.001=) 32,000 IOPS. If we have only 1 path to the LUN then that's our maximum possibly number of IOPS, however the same LUN with 4 paths would be able to do over 100,000 IOPS to this LUN.
+
+https://www.emc.com/collateral/white-papers/h15093-emc-unity-best-practices-guide.pdf
+TRANSACTIONAL APPLICATIONS
+Unity systems require high concurrency to deliver the maximum performance (IOPS). This is naturally achieved when connecting many
+hosts with many LUNs. For systems that will be configured with only a few hosts and/or LUNs, host HBA settings may need to be
+adjusted to increase concurrency. Consult the documentation for your OS or HBA on how to adjust LUN queue depth settings.
+
+https://www.brentozar.com/archive/2013/09/iops-are-a-scam/
+Combining IOPS, throughput, and latency numbers is a step in the right direction. It lets us combine activity (IOPS), throughput (MB/s), and performance (latency) to examine system performance. 
 
 # Troubleshooting SQL Server I/O requests taking longer than 15 seconds – I/O stalls & Disk latency
 
