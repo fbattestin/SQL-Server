@@ -296,6 +296,10 @@ https://www.microsoft.com/en-us/download/details.aspx?id=16475
 http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
 
 # I/O
+
+https://support.microsoft.com/pt-br/help/230785/description-of-logging-and-data-storage-algorithms-that-extend-data-reliability-in-sql-server
+
+
 https://blog.docbert.org/queue-depth-iops-and-latency/
 The end result of this is that the more paths a LUN has, the less important the HBA queue depth is. Most HBA's have a default queue depth of around 32, which if our storage can maintain a response time of 1ms (measured at the application) then we know that this is enough to generate up to around (32x1/0.001=) 32,000 IOPS. If we have only 1 path to the LUN then that's our maximum possibly number of IOPS, however the same LUN with 4 paths would be able to do over 100,000 IOPS to this LUN.
 
