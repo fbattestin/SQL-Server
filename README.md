@@ -279,6 +279,8 @@ durante operações de DML.
 - Alterar as chaves dos indices ou alterar o FILLFACTOR para reduzir o page split.
 - Se possível analisar a arquitetura de disco para uma melhor distribuição da carga de dados.
 
+https://sqlperformance.com/2012/12/io-subsystem/trimming-t-log-fat
+
 # SQL Server 2016 Technical Documentation
 https://technet.microsoft.com/en-us/library/ms130214.aspx
 
@@ -296,6 +298,8 @@ https://www.microsoft.com/en-us/download/details.aspx?id=16475
 http://www.sqlskills.com/blogs/paul/performance-issues-from-wasted-buffer-pool-memory/
 
 # I/O
+
+https://sqlperformance.com/2012/12/io-subsystem/trimming-t-log-fat
 
 https://support.microsoft.com/pt-br/help/230785/description-of-logging-and-data-storage-algorithms-that-extend-data-reliability-in-sql-server
 
