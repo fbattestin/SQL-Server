@@ -1,0 +1,687 @@
+SET NOCOUNT ON
+
+PRINT '  __  _ _  ___ __  _  __    _  __  ___   ___  _  __  ___     _  _  _  __  ___  _   _    _   '
+PRINT ' / _|| U || __/ _|| |// |  | |/ _||_ _| | o \/ \/ _||_ _|   | || \| |/ _||_ _|/ \ | |  | |  '
+PRINT '( (_ |   || _( (_ |  (| |_ | |\_ \ | |  |  _( o )_ \ | | __ | || \\ |\_ \ | || o || |_ | |_ '
+PRINT ' \__||_n_||___\__||_|\\___||_||__/ |_|  |_|  \_/|__/ |_||__||_||_|\_||__/ |_||_n_||___||___|'
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT 'EXECUTED IN: ' + CONVERT(VARCHAR(10),GETDATE(),111) + ' ' + CONVERT(VARCHAR(10),GETDATE(),108)
+PRINT  'BY: ' + SYSTEM_USER
+PRINT '----------------------------------------------------------------------------------------------------'
+
+if (select object_id('tempdb.dbo.#net_data')) is not null 
+begin
+	drop table tempdb.dbo.#net_data
+end
+
+create table #net_data (descriptions varchar(100))
+
+if (select object_id('tempdb.dbo.#net_data1')) is not null 
+begin
+	drop table tempdb.dbo.#net_data1
+end
+
+create table #net_data1 (descriptions varchar(200))
+
+if (select object_id('tempdb.dbo.#MSSCM')) is not null 
+begin
+	drop table tempdb.dbo.#MSSCM
+end
+
+CREATE TABLE #MSSCM ([Type] varchar(25),value VARCHAR(50),data VARCHAR(100))
+
+if (select object_id('tempdb.dbo.#xp_dirtree')) is not null 
+begin
+	drop table tempdb.dbo.#xp_dirtree
+end
+
+CREATE TABLE #xp_dirtree ([owner] nvarchar(25),[Object] nvarchar(250),[Grantee] varchar(50),[Grantor] varchar(5),ProtectType varchar(250),[Action] varchar(250),[Column] varchar(250))
+
+if (select object_id('tempdb.dbo.#ErrorlogNumber')) is not null 
+begin
+	drop table tempdb.dbo.#ErrorlogNumber
+end
+
+if (select object_id('tempdb.dbo.#Instance')) is not null 
+begin
+	drop table tempdb.dbo.#Instance
+end
+CREATE TABLE #Instance (value VARCHAR(50),data VARCHAR(50))
+
+if (select object_id('tempdb.dbo.#AuditData')) is not null 
+begin
+	drop table tempdb.dbo.#AuditData
+end
+CREATE TABLE #AuditData (value VARCHAR(50),data VARCHAR(100))
+
+if (select object_id('tempdb.dbo.#msver')) is not null 
+begin
+	drop table tempdb.dbo.#msver
+end
+CREATE TABLE #msver (indx INT, name VARCHAR(50), internal_value INT, character_value VARCHAR(255))
+
+if (select object_id('tempdb.dbo.#WinverSP')) is not null 
+begin
+	drop table tempdb.dbo.#WinverSP
+end
+CREATE TABLE #WinverSP (value	VARCHAR (255),data VARCHAR(255))
+
+DECLARE @Instance VARCHAR(50)
+DECLARE @InstanceLoc VARCHAR(50)
+DECLARE @RegKey VARCHAR(255)
+DECLARE @CPUCount INT
+DECLARE @CPUID INT
+DECLARE @AffinityMask INT
+DECLARE @CPUList VARCHAR(50)
+DECLARE @InstCPUCount INT
+DECLARE @sql VARCHAR(255)
+DECLARE @Database VARCHAR(50)
+DECLARE @WINVERSP VARCHAR(255)
+
+
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - SYSTEM INFO - GENERAL'
+PRINT '----------------------------------------------------------------------------------------------------'
+--get OS Info
+EXEC XP_CMDSHELL 'wmic path Win32_OperatingSystem get Caption,buildnumber,csname,oslanguage,status,OSArchitecture,TotalVisibleMemorySize'
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - SYSTEM INFO - PROCESSOR'
+PRINT '----------------------------------------------------------------------------------------------------'
+--get Processor Info
+EXEC XP_CMDSHELL 'wmic path win32_processor get name,status,numberofcores,NumberOfLogicalProcessors'
+
+INSERT INTO #msver EXEC xp_msver 
+
+--get Windows server version and its service pack
+SET @RegKey = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+INSERT INTO #WinverSP EXEC xp_regread 'HKEY_LOCAL_MACHINE',@regkey,'ProductName'
+INSERT INTO #WinverSP EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'CSDVersion'
+
+PRINT '----------------------------------------------------------------------------------------------------'
+SELECT	CAST(data AS VARCHAR(100)) AS '[WINDOWS SERVER] - SYSTEM INFO - SERVICE PACK'
+FROM	#WinverSP
+WHERE	value = 'CSDVersion'
+
+--get instance location FROM registry
+SET @RegKey = 'SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL'
+
+INSERT INTO #Instance EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, @@servicename
+
+SELECT @InstanceLoc=data FROM #Instance WHERE VALUE = @@servicename
+
+--get audit data FROM registry and insert into #AuditData
+
+SET @RegKey = 'SOFTWARE\Microsoft\Microsoft SQL Server\' + @InstanceLoc + '\Setup'
+
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'Edition'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'SqlCluster'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'SqlProgramDir'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'SQLDataRoot'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'SQLPath'
+
+SET @RegKey = 'SOFTWARE\Microsoft\Microsoft SQL Server\' + @InstanceLoc + '\MSSQLSERVER'
+
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'AuditLevel'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'LoginMode'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'DefaultData'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'DefaultLog'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'BackupDirectory'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'NumErrorLogs'
+
+SET @RegKey = 'SOFTWARE\Microsoft\Microsoft SQL Server\' + @InstanceLoc + '\SQLServerAgent'
+
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'RestartSQLServer'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'RestartServer'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'UseDatabaseMail'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'DatabaseMailProfile'
+
+SET @RegKey = 'SOFTWARE\Microsoft\Microsoft SQL Server\' + @InstanceLoc + '\MSSQLSERVER\SuperSocketNetLib\Tcp\IPAll'
+
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'TcpDynamicPorts'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'TcpPort'
+INSERT INTO #AuditData EXEC xp_regread 'HKEY_LOCAL_MACHINE','SOFTWARE\McAfee\VSCore\On Access Scanner\McShield\Configuration\Default', 'szExcludeExts'
+
+
+UPDATE #AuditData 
+   SET value = 'Antivirusprofile' where  value = 'szExcludeExts'
+  
+UPDATE #AuditData 
+   SET data =  
+      CASE 
+         WHEN data = 0 THEN 'captures no logins'
+         WHEN data = 1 THEN 'captures only success login attempts'
+         WHEN data = 2 THEN 'captures only failed login attempts'
+         WHEN data = 3 THEN 'captures both success and failed login attempts'
+         ELSE data 
+      END
+ WHERE value IN ('AuditLevel')
+
+UPDATE #AuditData 
+   SET data =  
+      CASE 
+         WHEN data = 1 THEN 'Windows Authentication'
+         WHEN data = 2 THEN 'Mixed Mode Authentication'
+         ELSE data 
+      END
+ WHERE value IN ('LoginMode')
+
+UPDATE #AuditData 
+   SET data =  
+      CASE 
+         WHEN data = 0 THEN 'FALSE'
+         WHEN data = 1 THEN 'TRUE'
+         ELSE data 
+      END
+ WHERE value IN ('RestartServer','RestartSQLServer','SqlCluster','UseDatabaseMail')
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - HAVE IIS INSTALLED?'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+
+declare @cdt int
+
+insert into #net_data exec master..xp_cmdshell 'net start'
+select @cdt=count(*) from #net_data where descriptions like '%IIS%'
+if @cdt > 0  
+print 'IIS Services intsalled on the server '
+else 
+print 'NO IIS Services intsalled on the server '
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - ALL LUNS AND VOLUMES'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+-- Volume info for all LUNS that have database files on the current instance (Query 21) (Volume Info)
+SELECT DISTINCT CONVERT(VARCHAR(75),vs.volume_mount_point) AS volume_mount_point, CONVERT(VARCHAR(5),vs.file_system_type) AS file_system_type, 
+CONVERT(VARCHAR(20),vs.logical_volume_name)logical_volume_name, CONVERT(DECIMAL(18,2),vs.total_bytes/1073741824.0) AS [Total Size (GB)],
+CONVERT(DECIMAL(18,2), vs.available_bytes/1073741824.0) AS [Available Size (GB)],  
+CONVERT(DECIMAL(18,2), vs.available_bytes * 1. / vs.total_bytes * 100.) AS [Space Free %]
+FROM sys.master_files AS f WITH (NOLOCK)
+CROSS APPLY sys.dm_os_volume_stats(f.database_id, f.[file_id]) AS vs 
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - GPO TO SQL SERVER SERVICE ACCOUNT'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+DECLARE @LockPagesInMemory VARCHAR(255),@MaintenenceTasks VARCHAR(255);
+SET @LockPagesInMemory = 'UNKNOWN';
+DECLARE @Res TABLE
+(
+    [output] NVARCHAR(255) NULL
+);
+
+IF (SELECT value_in_use
+    FROM sys.configurations c
+    WHERE c.name = 'xp_cmdshell'
+    ) = 1
+BEGIN
+    INSERT INTO @Res
+    EXEC xp_cmdshell 'WHOAMI /PRIV';
+
+    IF EXISTS (SELECT *
+        FROM @Res 
+        WHERE [output] LIKE 'SeLockMemoryPrivilege%'
+        )
+        SET @LockPagesInMemory = 'ENABLED';
+    ELSE
+        SET @LockPagesInMemory = 'DISABLED';
+
+    IF EXISTS (SELECT *
+        FROM @Res 
+        WHERE [output] LIKE 'SeManageVolumePrivilege%'
+        )
+        SET @MaintenenceTasks = 'ENABLED';
+    ELSE
+        SET @MaintenenceTasks = 'DISABLED';
+
+		
+END
+
+SELECT 'Lock Pages In Memory',CONVERT(VARCHAR(8),@LockPagesInMemory)
+union all
+SELECT 'Perform Volume Maintenance Tasks',CONVERT(VARCHAR(8),@MaintenenceTasks)
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - CONTROL - M SERVICES'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+exec master..xp_cmdshell 'sc qc ctmag' 
+exec master..xp_cmdshell 'sc qc ctmfw_service' 
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[WINDOWS SERVER] - NETWORKER BACKUP SERVICES'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+exec master..xp_cmdshell 'sc qc NSREXECD' 
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER ] - INSTANCE INFORMATION'
+PRINT '----------------------------------------------------------------------------------------------------'
+SELECT CAST(value AS VARCHAR(25)) AS instance_name, 
+       CAST(data AS VARCHAR(25)) AS location,
+	   CONVERT(VARCHAR(5),SERVERPROPERTY('ProductLevel')) AS service_pack,
+	   CONVERT(VARCHAR(25),SERVERPROPERTY('ProductVersion')) AS product_version,
+	   CONVERT(VARCHAR(25),local_net_address) as 'ipaddressofsqlserver' ,
+       local_tcp_port  as 'portnumber' 
+  FROM #Instance a
+  inner join sys.dm_exec_connections b
+		on convert(nvarchar(128),serverproperty('computernamephysicalnetbios'))  = convert(nvarchar(128),serverproperty('computernamephysicalnetbios'))  
+  where session_id = @@spid		
+
+
+SELECT 'Instance Collation' as name ,SERVERPROPERTY( 'Collation' ) AS value
+UNION ALL
+SELECT CAST(name AS VARCHAR(25)) AS name, 
+       CAST(character_value AS VARCHAR(50)) AS value
+  FROM #msver
+ WHERE name in ('productname','productversion','platform','filedescription')
+UNION ALL
+SELECT CAST(value AS VARCHAR(25)) AS name, 
+       CAST(data AS VARCHAR(100)) AS value 
+  FROM #AuditData
+ ORDER BY value
+
+ 
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - TRACE FLAG'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+DBCC TRACESTATUS
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - SECURITY BASELINE'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+ SELECT CASE WHEN is_disabled = 1 THEN 'SA USER IS DISABLED' ELSE 'SA USER IS NOT DISABLED!' END 
+ FROM sys.server_principals WHERE NAME = 'SA'
+
+ SELECT CASE WHEN SYSADMIN = 1 THEN 'LOGIN: BVMFADMIN - CREATED AND SYSADMIN' ELSE 'LOGIN: BVMFADMIN - NOT CREATED' END
+ FROM sysLOGINS WHERE NAME = 'BVMFADMIN'
+
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - BUILTIN\ADMINISTRATORS REMOVED'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+SELECT CAST(loginname AS VARCHAR(35)) AS loginname, 
+       hasaccess, 
+       isntname, 
+       isntgroup, 
+       sysadmin 
+  FROM syslogins 
+ WHERE name LIKE '%administrators%'
+ union all
+SELECT CAST(loginname AS VARCHAR(35)) AS loginname, 
+       hasaccess, 
+       isntname, 
+       isntgroup, 
+       sysadmin 
+  FROM syslogins 
+ WHERE name LIKE '%SYSTEM%'
+
+insert into #xp_dirtree exec SP_HELPROTECT xp_dirtree
+
+select convert(varchar(10),[Object])[Object],[Grantee] from #xp_dirtree
+
+select case when count(1) > 0 then 'xp_dirtree active! Please execute REVOKE EXECUTE TO public' else 'xp_dirtree disabled! Nothing to do!' end from #xp_dirtree
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - (SP_CONFIGURE) - CONFIGURATION FEATURES ENABLED/DISABLED'
+PRINT '----------------------------------------------------------------------------------------------------'
+exec sp_configure 'show advanced options',1
+reconfigure with override
+
+create table #xp_cmd
+(
+name varchar(50),
+minvalue int,
+maxvalue int,
+config_value int,
+run_value int,
+)
+
+insert into #xp_cmd
+exec sp_configure
+
+select name,config_value from #xp_cmd where name in('SQL Mail XPs'
+,'Database Mail XPs','fill factor (%)','remote access','remote admin connections'
+,'remote login timeout (s)','remote proc trans','remote query timeout (s)','Ad Hoc Distributed Queries'
+,'scan for startup procs','cross db ownership chaining','max degree of parallelism')
+
+
+drop table #xp_cmd
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - MEMORY AND CPU SETTINGS'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+SELECT CAST(description AS VARCHAR(50)) AS description, 
+       CAST(value AS VARCHAR(50)) AS value
+  FROM sys.configurations
+ WHERE name IN ('awe enabled','max server memory (MB)','min server memory (MB)','priority boost')
+ ORDER BY name
+
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - VERIFY CPU AFFINITY'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+
+
+SELECT @CPUCount = internal_value 
+  FROM #msver 
+ WHERE NAME = 'processorcount'
+
+SELECT @AffinityMask = CAST(value as int) 
+  FROM sys.configurations 
+ WHERE name = 'affinity mask'
+
+SET @CPUID = 0
+SET @InstCPUCount = 0
+SET @CPUList = ''
+
+IF @AffinityMask = 0
+      BEGIN
+            SET @InstCPUCount = @CPUCount
+            SET @CPUList = 'No affinity set - all CPUs available to instance'
+      END
+ELSE
+      BEGIN
+            WHILE(@CPUID <= @CPUCount - 1)
+                  BEGIN
+                        IF(@AffinityMask & POWER(2, @CPUID)) > 0
+                              BEGIN
+                                    SET @CPUList = @CPUList + 'CPU' + CAST(@CPUID AS VARCHAR(2)) + ' '
+                                    SET @InstCPUCount = @InstCPUCount + 1
+                              END
+                        SET @CPUID = @CPUID + 1
+                  END
+      END
+
+PRINT 'Total CPU Count            = ' + cast (@CPUCount as varchar(2))
+PRINT 'Instance CPU Count         = ' + cast (@InstCPUCount as varchar(2))
+PRINT 'CPUs Assigned to Instance  = ' + @CPUList
+
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - SERVICES'
+PRINT '----------------------------------------------------------------------------------------------------'
+
+
+DECLARE @cmd NVARCHAR(2500);
+
+--SQL Database Engine Service
+SET @CMD = 'sc qc ' + (select 'MSSQL$' + CONVERT(VARCHAR(MAX),SERVERPROPERTY('InstanceName')))
+insert into #net_data1 exec master..xp_cmdshell  @CMD
+
+--SQL Agent Service
+SET @CMD = 'sc qc ' + (select 'SQLAgent$' + CONVERT(VARCHAR(MAX),SERVERPROPERTY('InstanceName')))
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+--SQL SQLBrowser
+insert into #net_data1 exec master..xp_cmdshell 'sc qc SQLBrowser'
+
+---SSIS
+SET @CMD = 'sc qc ' + (select 'MsDtsServer' + convert(varchar(2),SERVERPROPERTY('ProductVersion')) + '0')
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+--MSSQLServerADHelper100
+SET @CMD = 'sc qc ' + (select 'MSSQLServerADHelper' + convert(varchar(2),SERVERPROPERTY('ProductVersion')) + '0')
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+--MSSQLFDLauncher
+SET @CMD = 'sc qc ' + (select 'MSSQLFDLauncher$' + CONVERT(VARCHAR(MAX),SERVERPROPERTY('InstanceName')))
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+--ReportServer$
+SET @CMD = 'sc qc ' + (select 'ReportServer$' + CONVERT(VARCHAR(MAX),SERVERPROPERTY('InstanceName')))
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+--SQLWriter
+SET @CMD = 'sc qc ' + 'SQLWriter'
+insert into #net_data1 exec master..xp_cmdshell @CMD
+
+
+delete from #net_data1
+where descriptions like '%ERROR_CONTROL      :%'
+
+delete from #net_data1
+where descriptions like '%LOAD_ORDER_GROUP%'
+
+delete from #net_data1
+where descriptions like '%TAG%'
+
+select	----replace(descriptions,'        DISPLAY_NAME       : ','') as DISPLAY_NAME 
+		case when substring(replace(descriptions,'        START_TYPE         : ',''),1,1) = '2' then '        START_TYPE         : Automatic'
+			 when substring(replace(descriptions,'        START_TYPE         : ',''),1,1) = '3' then '        START_TYPE         : Manual' 
+			 when substring(replace(descriptions,'        START_TYPE         : ',''),1,1) = '4' then '        START_TYPE         : Disabled' 
+			 else descriptions end as START_TYPE  
+from	#net_data1
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - NUMBER OF ERRORLOG FILES'
+PRINT '----------------------------------------------------------------------------------------------------'
+CREATE TABLE #ErrorlogNumber (value VARCHAR(50),data VARCHAR(100))
+
+set @RegKey = N'SOFTWARE\Microsoft\Microsoft SQL Server\' + @InstanceLoc + '\MSSQLServer'
+insert into #ErrorlogNumber EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'NumErrorLogs'
+
+select	convert(varchar(12),value) as value
+		,convert(varchar(3),data) as data
+from	#ErrorlogNumber
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - PROTOCOL STATUS'
+PRINT '----------------------------------------------------------------------------------------------------'
+set @RegKey = N'SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10_50.GESTAODB\MSSQLServer\SuperSocketNetLib\Tcp'
+insert into #MSSCM (value,data)
+EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'Enabled'
+
+update  #MSSCM
+set		[type] = 'TCP/IP'
+where	[type] is null
+
+set @RegKey = N'SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10_50.GESTAODB\MSSQLServer\SuperSocketNetLib\np'
+insert into #MSSCM (value,data)
+EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'Enabled'
+
+update  #MSSCM
+set		[type] = 'Named Pipes'
+where	[type] is null
+
+
+set @RegKey = N'SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10_50.GESTAODB\MSSQLServer\SuperSocketNetLib\via'
+insert into #MSSCM (value,data)
+EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'Enabled'
+
+update  #MSSCM
+set		[type] = 'VIA'
+where	[type] is null
+
+set @RegKey = N'SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10_50.GESTAODB\MSSQLServer\SuperSocketNetLib\sm'
+insert into #MSSCM (value,data)
+EXEC xp_regread 'HKEY_LOCAL_MACHINE', @RegKey, 'Enabled'
+
+update  #MSSCM
+set		[type] = 'Shared Memory'
+where	[type] is null
+
+select [type],case when data = 1 then 'Enabled' else 'Disabled' end  [Status] from #MSSCM
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER AGENT] - JOBS CREATED'
+PRINT '----------------------------------------------------------------------------------------------------' 
+-- Get SQL Server Agent jobs and Category information (Query 8) (SQL Server Agent Jobs)
+SELECT sj.name AS [JobName], SUSER_SNAME(sj.owner_sid) AS [JobOwner],
+sj.date_created, sj.[enabled], sc.name AS [CategoryName],js.next_run_date, js.next_run_time
+FROM msdb.dbo.sysjobs AS sj WITH (NOLOCK)
+INNER JOIN msdb.dbo.syscategories AS sc WITH (NOLOCK)
+ON sj.category_id = sc.category_id
+LEFT OUTER JOIN msdb.dbo.sysjobschedules AS js WITH (NOLOCK)
+ON sj.job_id = js.job_id
+ORDER BY sj.name OPTION (RECOMPILE);
+
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER] - BACKUPS'
+PRINT '----------------------------------------------------------------------------------------------------' 
+;with cte as 
+			(
+				SELECT 
+				   CONVERT(CHAR(100), SERVERPROPERTY('Servername')) AS Server,
+				   msdb.dbo.backupset.database_name, 
+				   msdb.dbo.backupset.user_name,
+				   msdb.dbo.backupset.backup_start_date, 
+				   msdb.dbo.backupset.backup_finish_date,
+				   msdb.dbo.backupset.expiration_date,
+				   CASE msdb..backupset.type 
+					   WHEN 'D' THEN 'FULL' 
+					   WHEN 'L' THEN 'LOG'
+					   ELSE 'DIFF' 
+				   END AS backup_type, 
+				   convert(varchar(50),msdb.dbo.backupset.backup_size) as [backup_size_Bytes], 
+				   convert(varchar(50),(msdb.dbo.backupset.backup_size/1024)/1024) as [backup_size_MB],
+				   convert(varchar(50),((msdb.dbo.backupset.backup_size/1024)/1024)/1024) as [backup_size_GB],
+				   msdb.dbo.backupmediafamily.logical_device_name, 
+				   msdb.dbo.backupmediafamily.physical_device_name,  
+				   msdb.dbo.backupset.name AS backupset_name,
+				   msdb.dbo.backupset.description
+				FROM   msdb.dbo.backupmediafamily 
+				   INNER JOIN msdb.dbo.backupset ON msdb.dbo.backupmediafamily.media_set_id = msdb.dbo.backupset.media_set_id 
+				WHERE  
+				--(CONVERT(datetime, msdb.dbo.backupset.backup_start_date, 102) >= GETDATE() - 7)
+				--	and 
+					msdb.dbo.backupset.backup_start_date >= dateadd(dd,-8,getdate())
+				)select  database_name
+						,backup_type
+						,count(1) as total_bkps
+				from	cte
+				group by 
+						database_name,backup_type
+				order by 
+						database_name
+
+PRINT '----------------------------------------------------------------------------------------------------'
+PRINT '[SQL SERVER ] - SYSTEM DATABASE FILES AND SIZES'
+PRINT '----------------------------------------------------------------------------------------------------'
+DECLARE databases_cursor CURSOR FOR 
+      SELECT name 
+      FROM sysdatabases
+      WHERE name IN ('master','model','msdb','tempdb')
+      ORDER BY name
+
+OPEN databases_cursor
+FETCH NEXT FROM databases_cursor INTO @Database
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+      
+      PRINT '   - ' + @Database
+      SET @sql = 'SELECT fileid, '
+      SET @sql = @sql + 'CAST(name AS VARCHAR(25)) as name, '
+      SET @sql = @sql + 'CAST(filename AS VARCHAR(75)) as filename, '
+      SET @sql = @sql + '(size*8)/1024 as [size-mb], '
+      SET @sql = @sql + 'maxsize as [max-8kb pages], growth '
+      SET @sql = @sql + 'FROM ' + @Database + '..sysfiles '
+      SET @sql = @sql + 'ORDER BY groupid DESC, name ASC '
+
+      EXEC (@sql)
+
+      FETCH NEXT FROM databases_cursor INTO @Database
+   
+END
+
+CLOSE databases_cursor
+DEALLOCATE databases_cursor
+
+
+PRINT 'check for user database files and sizes'
+
+DECLARE databases_cursor CURSOR FOR 
+      SELECT name 
+      FROM sysdatabases
+      WHERE name NOT IN ('master','model','msdb','questsoftware','litespeedlocal','tempdb')
+      ORDER BY name
+
+OPEN databases_cursor
+FETCH NEXT FROM databases_cursor INTO @Database
+
+IF @@FETCH_STATUS <> 0 
+      PRINT '         <<No USER Databases>>'
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+      
+      PRINT '   - ' + @Database
+      SET @sql = 'SELECT fileid, '
+      SET @sql = @sql + 'CAST(name AS VARCHAR(25)) as name, '
+      SET @sql = @sql + 'CAST(filename AS VARCHAR(75)) as filename, '
+      SET @sql = @sql + '(size*8)/1024 as [size-mb], '
+      SET @sql = @sql + 'maxsize as [max-8kb pages], growth '
+      SET @sql = @sql + 'FROM ' + @Database + '..sysfiles '
+      SET @sql = @sql + 'ORDER BY groupid DESC, name ASC '
+
+      EXEC (@sql)
+
+      FETCH NEXT FROM databases_cursor INTO @Database
+   
+END
+
+CLOSE databases_cursor
+DEALLOCATE databases_cursor
+
+
+--================================= Verify Linked servers ================================
+
+PRINT 'Verify the Linked Server Details'
+
+SELECT ss.server_id 
+          ,ss.name 
+          ,'Server ' = Case ss.Server_id 
+                            when 0 then 'Current Server' 
+                            else 'Remote Server' 
+                            end 
+          ,ss.product 
+          ,ss.provider 
+          ,ss.catalog 
+          ,'Local Login ' = case sl.uses_self_credential 
+                            when 1 then 'Uses Self Credentials' 
+                            else ssp.name 
+                            end 
+           ,'Remote Login Name' = sl.remote_name 
+           ,'RPC Out Enabled'    = case ss.is_rpc_out_enabled 
+                                   when 1 then 'True' 
+                                   else 'False' 
+                                   end 
+           ,'Data Access Enabled' = case ss.is_data_access_enabled 
+                                    when 1 then 'True' 
+                                    else 'False' 
+                                    end 
+           ,ss.modify_date 
+      FROM sys.Servers ss 
+ LEFT JOIN sys.linked_logins sl 
+        ON ss.server_id = sl.server_id 
+ LEFT JOIN sys.server_principals ssp 
+        ON ssp.principal_id = sl.local_principal_id
+
+
+--xp_cmdshell 'Get-WmiObject -computerName "." -query ''Select * FROM win32_service WHERE Name Like "SQL%"'''
+
+--xp_cmdshell 'wmic path win32_service get name,startmode,startname'
