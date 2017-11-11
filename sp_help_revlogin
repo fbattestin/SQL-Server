@@ -81,8 +81,14 @@ BEGIN
   DEALLOCATE login_curs
   RETURN -1
 END
+SET @tmpstr = '/* sp_help_revlogin script ' + char(10) 
+set @tmpstr = @tmpstr + 'v2 - alterada por fábio battestin' + char(10)+
+'				data: 11/11/207' + char(10) +
+'				alteração: @database_fool nova variável de entrada, seleciona o banco de dados, objetivo de migrar somente logins que acessam esse banco ' + char(10) + 
+'				caso o usuário for sysadmin, irá atribuir a permissão.' + char(10) +
+'				OBJETIVO: Migração de bases de dados independentes mantendo a higienização de logins migrados. Migrando somente os logins utilizados pela base (exceto sysadmin).'
+print @tmpstr
 SET @tmpstr = '/* sp_help_revlogin script '
-PRINT @tmpstr
 SET @tmpstr = '** Generated ' + CONVERT (varchar, GETDATE()) + ' on ' + @@SERVERNAME + ' */'
 PRINT @tmpstr
 PRINT ''
@@ -176,12 +182,13 @@ BEGIN
 			and p.name = @name
 			and l.sysadmin = 1
 
-				print ''
-				set @tmpstrSYSAADMIN = 'EXEC master..sp_addsrvrolemember @loginame = ' + '''' + @loginameIN + '''' + ', @rolename = N''sysadmin'' --Login SYSADMIN'
+				print 'USE master'
+				print 'GO'
+				set @tmpstr = @tmpstr +  CHAR(10) + 'GO'
+				PRINT @tmpstr
+				set @tmpstrSYSAADMIN = 'EXEC master..sp_addsrvrolemember @loginame = ' + '''' + @loginameIN + '''' + ', @rolename = N''sysadmin'' --Login SYSADMIN' + CHAR(10) + 'GO'
 				print @tmpstrSYSAADMIN
 				print ''
-				PRINT @tmpstr
-
 			end
 end
 else
@@ -196,5 +203,4 @@ CLOSE login_curs
 DEALLOCATE login_curs
 RETURN 0
 GO
-
 
