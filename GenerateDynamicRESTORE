@@ -1,0 +1,65 @@
+use master
+go
+
+
+set nocount on 
+DECLARE  @SQL VARCHAR(8000)
+		,@DBNAME VARCHAR(250)
+		,@CONT	INT
+		,@IDX	INT
+		,@name	VARCHAR(MAX)
+		,@xp	VARCHAR(MAX)
+
+		
+DECLARE @TABLE TABLE (LIST VARCHAR(255));
+
+select @CONT =4,@IDX = max(database_id) from sys.databases where database_id > 3
+
+WHILE @CONT <= @IDX
+BEGIN
+
+	SELECT @dbname = NAME FROM   sys.databases where database_id = @CONT
+	if @DBNAME <> 'ADM_BDADOS'
+	begin
+
+	--Comando
+	set  @name = 'ALTER DATABASE [' + @dbname + ']  SET OFFLINE WITH ROLLBACK IMMEDIATE; '
+
+	--Geração do Arquivo
+	set @xp  = 'exec master..xp_cmdshell ' + '''' + 'echo ' +  @name +  '>> c:\temp\' + @dbname + '.txt' + ''''
+	exec (@xp)
+	set @xp  = 'exec master..xp_cmdshell ' + '''' + 'echo GO >> c:\temp\' + @dbname + '.txt' + ''''
+	exec (@xp)
+
+	--Comando
+	set  @name = 'ALTER DATABASE  [' + @dbname + ']  SET ONLINE; '
+
+	--Geração do Arquivo
+	set @xp  = 'exec master..xp_cmdshell ' + '''' + 'echo ' +  @name +  '>> c:\temp\' + @dbname + '.txt' + ''''
+	exec (@xp)
+	set @xp  = 'exec master..xp_cmdshell ' + '''' + 'echo GO >> c:\temp\' + @dbname + '.txt' + ''''
+	exec (@xp)
+
+	--Comando
+	set  @name = 'RESTORE DATABASE [' + @dbname + '] FROM DISK = ' +'''' + '''' + 'Z:\BKP\' + @dbname + '.BAK '+ '''' + '''WITH '
+	select  @name = COALESCE(@name + ',','') +' MOVE' + '''''' + NAME +  '''''' + ' TO ' +  '''''' + [filename] +  '''''' 
+	from	sysaltfiles
+	where	db_name(dbid) = @dbname
+	AND fileid > 1
+	--Comando
+	set  @name = @name +', STATS =10,RECOVERY,REPLACE;'
+	set	 @name = REPLACE(@name,'WITH , MOVE','WITH MOVE ')
+
+	--Geração do Arquivo
+	set @xp  = 'exec master..xp_cmdshell ' + '''' + 'echo ' +  @name +  '>> c:\temp\' + @dbname + '.txt' + ''''
+	exec (@xp)
+
+
+	end
+	set @CONT = @cont + 1
+	
+	--	exec (@xp)
+	
+end
+
+
