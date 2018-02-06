@@ -1,0 +1,115 @@
+
+
+https://iapp.org/news/a/operationalizing-privacy-tech-eight-steps-to-a-successful-proof-of-concept/
+
+https://securosis.com/assets/library/reports/UnderstandingMasking_FinalMaster_V3.pdf
+
+https://tdwi.org/Articles/2013/02/12/Evolution-of-Data-Masking.aspx?Page=2
+
+https://conference.eurostarsoftwaretesting.com/test-data-masking-and-tool-pilot-experiences/
+
+https://www.itworld.com/article/2854332/top-10-evaluation-criteria-for-copy-data-management-data-virtualization.html
+
+https://www.cognizant.com/whitepapers/Guided-Approach-to-Data-Masking-Solutions.pdf
+
+http://nvlpubs.nist.gov/nistpubs/ir/2015/NIST.IR.8053.pdf
+
+
+Dynamic Data Masking Proof of Concept Questionnaire
+Abstract
+This article contains questions to ask potential Dynamic Data Masking customers about their requirements and configuration for a proof of concept or sale. 
+Supported Versions
+Dynamic Data Masking 9.6.2
+Table of Contents
+Abstract	2
+Supported Versions	2
+Table of Contents	2
+Questions	2
+
+Questions
+Please provide the following information: 
+
+	•	Database type and version on which you want to apply Dynamic Data Masking:
+Click here to enter text.
+	
+	•	Operating system and version on which the database is installed:
+Click here to enter text.
+	
+	•	Database server configuration: 
+Click here to enter text.
+
+	
+	•	Operating system and version on which the Dynamic Data Masking Server will be installed: 
+Click here to enter text.
+	
+	•	Operating system and version on which the Dynamic Data Masking client will be installed: 
+Click here to enter text.
+	
+	•	Dynamic Data Masking Server configuration:
+Click here to enter text.
+	
+
+	•	Is an application server installed? 
+Click here to enter text.
+	
+	•	Other tools that you want to use with Dynamic Data Masking: 
+Click here to enter text.
+	
+	•	Are any failover technologies used? If so, what are they? 
+Click here to enter text.
+	
+	•	Is database high availability used? If so, what technology is used? 
+Click here to enter text.
+	
+	•	Is the database encrypted? If so, what encryption method is used? 
+Click here to enter text.
+
+	•	What authentication (native, LDAP, AD, IBM Tivoli, etc.) is used? 
+Click here to enter text.
+	
+	•	JDBC drivers used for connection, including vendor version details: 
+Click here to enter text.
+	
+	•	ODBC drivers used for connection, including vendor version details: 
+Click here to enter text.
+	
+	•	OLE DB drivers used for connection, including vendor version details: 
+Click here to enter text.
+	
+	•	Protocols and clients used to connect to the database: 
+Click here to enter text.
+	
+	•	Are ERPs involved? 
+Click here to enter text.
+	
+	•	Are reporting tools involved? 
+Click here to enter text.
+	
+	•	Is stored procedure masking required? 
+Click here to enter text.
+	
+	•	Performance aspects:
+ 
+	•	Average number of tables in the database: 
+Click here to enter text.
+	
+	•	Average size of the database: 
+Click here to enter text.
+	
+	•	Average number of  rows in a table: 
+Click here to enter text.
+
+	•	Query size (complexity of query): 
+Click here to enter text.
+
+	•	Number of concurrent users/threads: 
+Click here to enter text.
+
+	•	OLTP transaction type: 
+Click here to enter text.
+
+	•	OLAP transaction type: 
+Click here to enter text.
+
+	•	Batch size (number of queries in a single batch): 
+Click here to enter text.
