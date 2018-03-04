@@ -1,5 +1,10 @@
 http://lti.cs.vt.edu/NewKA/OpenDSA/Books/CS2114/html/IntroDSA.html
 
+# Partitioned Tables
+
+https://www.red-gate.com/simple-talk/sql/database-administration/partitioned-tables-indexes-and-execution-plans-a-cautionary-tale/?article=1587
+
+
 # SQL-Server
 
 SET STATISTICS IO ON
