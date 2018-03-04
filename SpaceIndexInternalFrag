@@ -1,0 +1,26 @@
+/*
+You can monitor both, internal and external fragmentation with sys.dm_db_index_physical_stats DMV. Internal fragmentation can be monitored with avg_page_space_used_in_percent column. Lower value in the column indicates higher degree of internal fragmentation.
+
+Let’s take a look at the example and analyze internal fragmentation of one of the indexes with the script below. For simplicity sake, I am using relatively small table; however, you would obviously like to focus on the largest indexes during the tuning process.
+
+Internal fragmentation, on the other hand, means that data pages in the index have free space. As a result, the index uses more data pages to store data. It also increases the number of reads during query execution and amount of memory in buffer pool to cache index pages.
+
+A small degree of internal fragmentation is not necessarily bad. It reduces page splits during insert and update operations when data is inserted into or updated from different parts of the index. Nonetheless, a large degree of internal fragmentation wastes index space and reduces the performance of the system. Moreover, for indexes with ever-increasing keys, for example on identity columns, internal fragmentation is not desirable because the data is always inserted at the end of the index.
+
+http://aboutsqlserver.com/2014/12/02/size-does-matter-10-ways-to-reduce-the-database-size-and-improve-performance-in-sql-server/
+*/
+
+
+
+select 
+    index_id, partition_number, alloc_unit_type_desc
+    ,index_level, page_count, avg_page_space_used_in_percent
+from 
+    sys.dm_db_index_physical_stats
+    (
+        db_id() /*Database */
+        ,object_id(N'dbo.MyTable') /* Table (Object_ID) */
+        ,1 /* Index ID */
+        ,null /* Partition ID – NULL – all partitions */
+        ,'detailed' /* Mode */
+    )
